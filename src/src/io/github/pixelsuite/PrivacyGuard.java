@@ -45,6 +45,9 @@ final class PrivacyGuard {
                     } catch (Throwable error) { }
                 }
             });
+        } catch (Throwable error) { }
+        // Android 17 QPR3 beta has no DropTargetHandler: the dragged view still has to be held for ItemDeleteHandler.
+        try {
             Xp.hookAllMethods(Xp.findClass("com.android.launcher3.DeleteDropTarget", cl), "onDrop", new Xp.Callback() {
                 @Override protected void beforeHookedMethod(Xp.Param p) {
                     try {
@@ -240,7 +243,8 @@ final class PrivacyGuard {
     }
 
     private static Field intField(Class<?> k) {
-        for (Field f : k.getDeclaredFields()) if (f.getType() == int.class && !Modifier.isStatic(f.getModifiers())) { f.setAccessible(true); return f; }
+        // The pill's action kind: an int, or a byte on Android 17 QPR3 beta (getInt reads both).
+        for (Field f : k.getDeclaredFields()) if ((f.getType() == int.class || f.getType() == byte.class) && !Modifier.isStatic(f.getModifiers())) { f.setAccessible(true); return f; }
         return null;
     }
 
