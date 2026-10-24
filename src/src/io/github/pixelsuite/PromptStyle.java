@@ -31,7 +31,9 @@ final class PromptStyle {
 
     static void install(ClassLoader cl) {
         try {
-            Class<?> container = Xp.findClass("com.android.systemui.biometrics.AuthContainerView", cl);
+            Class<?> container;
+            try { container = Xp.findClass("com.android.systemui.biometrics.AuthContainerView", cl); }
+            catch (Throwable qpr3) { container = Xp.findClass("com.android.systemui.biometrics.prompt.ui.AuthContainerView", cl); }   // Android 17 QPR3 beta
             Xp.hookAllMethods(container, "onAttachedToWindow", new Xp.Callback() {
                 @Override protected void afterHookedMethod(Xp.Param p) {
                     try {
