@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_TOOLS: 35.0.0
+      D8_JAR: ${{ github.workspace }}/.build-tools/r8-9.5.28.jar
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Android SDK packages
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-23" "build-tools;$BUILD_TOOLS" > /dev/null
+          echo "$ANDROID_HOME/build-tools/$BUILD_TOOLS" >> "$GITHUB_PATH"
+          echo "ANDROID_JAR=$ANDROID_HOME/platforms/android-23/android.jar" >> "$GITHUB_ENV"
+
+      - name: Download pinned D8
+        run: |
+          mkdir -p "$(dirname "$D8_JAR")"
+          curl -fsSL -o "$D8_JAR" https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.5.28/r8-9.5.28.jar
+          echo "38a9ffaaebbd17d1514e3ecbff5a85b989bb13c551b9e224c7409514eea84ff5  $D8_JAR" | sha256sum -c -
+
+      - name: Build
+        working-directory: src
+        run: bash build.sh
+
+      - name: Logic tests
+        working-directory: src
+        run: |
+          T="$RUNNER_TEMP/tests"
+          mkdir -p "$T/stubs" "$T/classes" "$T/work"
+          javac -nowarn --release 8 -cp "$ANDROID_JAR" -d "$T/stubs" $(find stubs -name '*.java')
+          javac -nowarn --release 8 -cp "$T/stubs:$ANDROID_JAR" -d "$T/classes" $(find src tests -name '*.java')
+          for test in tests/io/github/pixelsuite/*Test.java; do
+            name=$(basename "$test" .java)
+            echo "::group::$name"
+            java -cp "$T/classes:$T/stubs:$ANDROID_JAR" "io.github.pixelsuite.$name" "$T/work"
+            echo "::endgroup::"
+          done
+
+      - name: Sign
+        working-directory: src
+        env:
+          KEYSTORE: ${{ secrets.PIXELSUITE_KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.PIXELSUITE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PIXELSUITE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PIXELSUITE_KEY_PASSWORD }}
+        run: |
+          version=$(sed -n 's/^version=//p' meta/xposed/module.prop)
+          name="PixelSuite-v$version-${GITHUB_SHA::7}"
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.jks"
+            apksigner sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
+              --v4-signing-enabled false --out "out/$name.apk" out/aligned.apk
+            rm -f "$RUNNER_TEMP/release.jks"
+            apksigner verify "out/$name.apk"
+          else
+            echo "::warning::No signing key configured; uploading an unsigned APK."
+            name="$name-unsigned"
+            cp out/aligned.apk "out/$name.apk"
+          fi
+          echo "APK_NAME=$name" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: src/out/${{ env.APK_NAME }}.apk
+          if-no-files-found: error
