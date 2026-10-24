@@ -62,11 +62,11 @@ final class AdBlock {
         Result r = new Result();
         if (on && !entitled(c)) {
             cancel(c);
-            r.message = "The Ad blocker is part of Pixel Suite's Patreon features";
+            r.message = L10n.t("The Ad blocker is part of Pixel Suite's Patreon features");
             return r;
         }
         if (Root.run("settings put secure " + KEY + (on ? " 1" : " 0")) == null) {
-            r.message = "Root access is needed";
+            r.message = L10n.t("Root access is needed");
             return r;
         }
         if (on) {
@@ -75,7 +75,7 @@ final class AdBlock {
         }
         cancel(c);
         writeHosts(c, MARK + " (off)\n" + STOCK, r);
-        if (r.ok) r.message = "Off: ads are no longer blocked";
+        if (r.ok) r.message = L10n.t("Off: ads are no longer blocked");
         return r;
     }
 
@@ -98,14 +98,14 @@ final class AdBlock {
 
     static Result update(Context c) {
         Result r = new Result();
-        if (!entitled(c)) { stop(c); r.message = "The Ad blocker is part of Pixel Suite's Patreon features"; return r; }
+        if (!entitled(c)) { stop(c); r.message = L10n.t("The Ad blocker is part of Pixel Suite's Patreon features"); return r; }
         Set<String> domains = new LinkedHashSet<String>(240000);
         int listsOk = 0;
         for (String url : LISTS) if (download(url, domains)) listsOk++;
         if (Cosmetic.update(c)) { listsOk++; domains.addAll(Cosmetic.blocked()); domains.removeAll(Cosmetic.allowed()); }
         for (String a : ALLOW) domains.remove(a);
         if (listsOk == 0 || domains.size() < 1000) {
-            r.message = "Couldn't download the ad lists (no connection?). The current list stays.";
+            r.message = L10n.t("Couldn't download the ad lists (no connection?). The current list stays.");
             prefs(c).edit().putString("error", r.message).apply();
             return r;
         }
@@ -118,7 +118,7 @@ final class AdBlock {
         if (r.ok) {
             r.domains = domains.size();
             prefs(c).edit().putInt("domains", r.domains).putLong("updated", System.currentTimeMillis()).remove("error").apply();
-            r.message = r.needsReboot ? "Ready: restart the phone once to start blocking" : null;
+            r.message = r.needsReboot ? L10n.t("Ready: restart the phone once to start blocking") : null;
         }
         return r;
     }
@@ -173,17 +173,17 @@ final class AdBlock {
             w.write(content);
             w.close();
         } catch (Throwable t) {
-            r.message = "Couldn't prepare the list";
+            r.message = L10n.t("Couldn't prepare the list");
             return;
         }
         File prop = new File(c.getCacheDir(), "adblock_module.prop");
         File service = new File(c.getCacheDir(), "adblock_service.sh");
         try {
             writeText(prop, "id=pixelsuite_adblock\nname=Pixel Suite ad blocker\nversion=1.0\nversionCode=1\nauthor=RovianDev\n"
-                    + "description=Blocks ad and tracker domains for every app (hosts file). Managed by Pixel Suite > Google apps > Ad blocker; removes itself if Pixel Suite is uninstalled.\n");
+                    + "description=" + L10n.t("Blocks ad and tracker domains for every app (hosts file). Managed by Pixel Suite > Google apps > Ad blocker; removes itself if Pixel Suite is uninstalled.") + "\n");
             writeText(service, serviceScript());
         } catch (Throwable t) {
-            r.message = "Couldn't prepare the module";
+            r.message = L10n.t("Couldn't prepare the module");
             return;
         }
         String s = "set -e; M=" + MOD + "; F=" + HOSTS + ";"
@@ -201,7 +201,7 @@ final class AdBlock {
         prop.delete();
         service.delete();
         if (out == null) {
-            r.message = "Root access is needed";
+            r.message = L10n.t("Root access is needed");
             return;
         }
         r.ok = true;
@@ -245,11 +245,12 @@ final class AdBlock {
         String err = p.getString("error", null);
         int n = p.getInt("domains", 0);
         long t = p.getLong("updated", 0);
-        if (n == 0) return err != null ? err : "Getting the ad lists…";
+        if (n == 0) return err != null ? err : L10n.t("Getting the ad lists…");
         long now = System.currentTimeMillis();
-        String when = now - t < 60000 ? "just now" : android.text.format.DateUtils.getRelativeTimeSpanString(t, now,
+        String when = now - t < 60000 ? L10n.t("just now") : android.text.format.DateUtils.getRelativeTimeSpanString(t, now,
                 android.text.format.DateUtils.MINUTE_IN_MILLIS).toString();
-        String s = String.format(Locale.getDefault(), "Blocking %,d ad domains · updated %s", n, when);
+        String count = String.format(Locale.getDefault(), "%,d", n);
+        String s = L10n.f("Blocking %s ad domains · updated %s", count, when);
         return err != null ? s + "\n" + err : s;
     }
 

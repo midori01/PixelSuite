@@ -14,7 +14,7 @@ final class PatronIdentity extends LinearLayout {
   setClickable(true);setFocusable(true);setOnClickListener(v->PatronAccount.open(activity));render();
  }
  private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
- private void render(){boolean connected=PatronAccess.loggedIn(activity);String label=connected?PatronAccess.prefs(activity).getString("name","Patreon account"):"Log in";name.setText(label);photo.setContentDescription(connected?"Patreon profile photo":"Sign in with Patreon");photo.load(connected,label);}
+ private void render(){boolean connected=PatronAccess.loggedIn(activity);String label=connected?PatronAccess.prefs(activity).getString("name",L10n.t("Patreon account")):L10n.t("Log in");name.setText(label);photo.setContentDescription(connected?L10n.t("Patreon profile photo"):L10n.t("Sign in with Patreon"));photo.load(connected,label);}
  @Override protected void onAttachedToWindow(){super.onAttachedToWindow();PatronAccess.watch(refresh);render();PatronAccess.ensureProfile(activity);}
  @Override protected void onDetachedFromWindow(){PatronAccess.unwatch(refresh);super.onDetachedFromWindow();}
  private static final class Portrait extends View {

@@ -57,8 +57,8 @@ final class RefreshRate90 {
                     Xp.setAdditionalInstanceField(row, F_ANCHOR, smooth);
                     Xp.setAdditionalInstanceField(smooth, F_ROW, row);
                     Xp.callMethod(row, "setKey", ROW);
-                    Xp.callMethod(row, "setTitle", (CharSequence) "Refresh rate");
-                    Xp.callMethod(row, "setSummary", (CharSequence) "Highest refresh rate. The screen still slows down when nothing moves.");
+                    Xp.callMethod(row, "setTitle", (CharSequence) L10n.t("Refresh rate"));
+                    Xp.callMethod(row, "setSummary", (CharSequence) L10n.t("Highest refresh rate. The screen still slows down when nothing moves."));
                     Xp.callMethod(row, "setPersistent", false);
                     Xp.callMethod(row, "setSelectable", false);
                     try { Xp.callMethod(row, "setIconSpaceReserved", (Boolean) Xp.callMethod(smooth, "isIconSpaceReserved")); } catch (Throwable ignored) { }
@@ -152,7 +152,7 @@ final class RefreshRate90 {
             obs = new ContentObserver(new Handler(Looper.getMainLooper())) {
                 @Override public void onChange(boolean self) { sync(true); }
             };
-            setContentDescription("Refresh rate");
+            setContentDescription(L10n.t("Refresh rate"));
         }
 
         @Override protected void onAttachedToWindow() {

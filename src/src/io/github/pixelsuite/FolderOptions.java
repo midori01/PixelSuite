@@ -29,7 +29,7 @@ final class FolderOptions {
         final View.OnAttachStateChangeListener lifecycle=new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){window.dismiss();}};
         anchor.addOnAttachStateChangeListener(lifecycle);
         window.setOnDismissListener(new PopupWindow.OnDismissListener(){public void onDismiss(){anchor.removeOnAttachStateChangeListener(lifecycle);}});
-        row(card,"Add apps",7,false,new Runnable(){public void run(){window.dismiss();LauncherFeatures.afterClose(folder,new Runnable(){public void run(){if(DrawerFolders.isFolder(info))DrawerFolders.chooseApps(info);else HomeFolderApps.choose(folder);}});}});
+        row(card,L10n.t("Add apps"),7,false,new Runnable(){public void run(){window.dismiss();LauncherFeatures.afterClose(folder,new Runnable(){public void run(){if(DrawerFolders.isFolder(info))DrawerFolders.chooseApps(info);else HomeFolderApps.choose(folder);}});}});
         final int apps=FolderRules.count(info);
         final boolean drawer=DrawerFolders.isFolder(info);
         if(apps>=2){
@@ -38,17 +38,17 @@ final class FolderOptions {
         final int id=f==null?0:f.id;
         sortGroup(card,auto,new Runnable(){public void run(){
             window.dismiss();if(auto)return;
-            if(drawer)DrawerFolderMenu.confirm("Sort apps?","Sort the apps in this folder from A to Z?",new Runnable(){public void run(){
+            if(drawer)DrawerFolderMenu.confirm(L10n.t("Sort apps?"),L10n.t("Sort the apps in this folder from A to Z?"),new Runnable(){public void run(){
                 DrawerFolders.reopenId=id;LauncherFeatures.afterClose(folder,new Runnable(){public void run(){DrawerFolders.sortFolder(id);}});
             }});
-            else DrawerFolderMenu.confirm("Sort apps?","Sort the apps in this folder from A to Z?",new Runnable(){public void run(){FolderSort.sortHome(info);}});
+            else DrawerFolderMenu.confirm(L10n.t("Sort apps?"),L10n.t("Sort the apps in this folder from A to Z?"),new Runnable(){public void run(){FolderSort.sortHome(info);}});
         }},new Runnable(){public void run(){
             window.dismiss();if(!auto)return;
             if(drawer){DrawerFolders.reopenId=id;LauncherFeatures.afterClose(folder,new Runnable(){public void run(){FolderSort.drawerCustom(id);}});}
             else FolderSort.setHomeMode(info,FolderSort.CUSTOM);
         }});
         }
-        if(apps>=3)for(final int n:new int[]{5,4,3}){if(n>FolderRules.largestGrid(apps))continue;row(card,n==3?"3\u00d73 (Stock)":n+"\u00d7"+n,50+n,LauncherFeatures.gridFor(info)==n,new Runnable(){public void run(){
+        if(apps>=3)for(final int n:new int[]{5,4,3}){if(n>FolderRules.largestGrid(apps))continue;row(card,n==3?L10n.t("3\u00d73 (Stock)"):n+"\u00d7"+n,50+n,LauncherFeatures.gridFor(info)==n,new Runnable(){public void run(){
             window.dismiss();LauncherFeatures.afterClose(folder,new Runnable(){public void run(){
                 if(DrawerFolders.isFolder(info))DrawerFolders.changeGrid(info,n);else LauncherFeatures.data.prefs.edit().putInt("grid:"+LauncherFeatures.get(info,"id"),n).apply();
                 LauncherFeatures.call(LauncherFeatures.get(folder,"mFolderIcon"),"updatePreviewItems",false);
@@ -71,7 +71,7 @@ final class FolderOptions {
         final Context c=card.getContext();
         final View[] choices=new View[2];final LauncherGlyph[] arrow=new LauncherGlyph[1];
         final boolean[] open=new boolean[]{false};final android.animation.ValueAnimator[] fold=new android.animation.ValueAnimator[1];
-        row(card,"Sort",9,false,new Runnable(){public void run(){
+        row(card,L10n.t("Sort"),9,false,new Runnable(){public void run(){
             open[0]=!open[0];
             if(arrow[0]!=null)arrow[0].flip(open[0]);
             final int full=FrostedSurface.dp(c,48);
@@ -91,8 +91,8 @@ final class FolderOptions {
             fold[0]=anim;anim.start();
         }});
         try{arrow[0]=(LauncherGlyph)((ImageView)((ViewGroup)card.getChildAt(card.getChildCount()-1)).getChildAt(0)).getDrawable();}catch(Throwable ignored){}
-        row(card,"Auto (A\u2013Z)",13,auto,onAuto);choices[0]=card.getChildAt(card.getChildCount()-1);
-        row(card,"Custom",14,!auto,onCustom);choices[1]=card.getChildAt(card.getChildCount()-1);
+        row(card,L10n.t("Auto (A\u2013Z)"),13,auto,onAuto);choices[0]=card.getChildAt(card.getChildCount()-1);
+        row(card,L10n.t("Custom"),14,!auto,onCustom);choices[1]=card.getChildAt(card.getChildCount()-1);
         for(View r:choices){
             r.getLayoutParams().height=0;r.setAlpha(0f);
             ViewGroup g=(ViewGroup)r;for(int i=0;i<g.getChildCount();i++){View part=g.getChildAt(i);FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)part.getLayoutParams();if(lp.gravity!=(Gravity.RIGHT|Gravity.CENTER_VERTICAL))lp.leftMargin+=FrostedSurface.dp(c,14);}
@@ -118,7 +118,7 @@ final class FolderOptions {
         TextView text=new TextView(c);text.setText(label);boolean grid=glyph>=53&&glyph<=55;text.setTextSize(grid?15:14);text.setTextColor(color);MenuFont.apply(text);text.setSingleLine(true);text.setGravity(Gravity.LEFT|Gravity.CENTER_VERTICAL);FrameLayout.LayoutParams tp=new FrameLayout.LayoutParams(-1,-1);tp.leftMargin=FrostedSurface.dp(c,42);tp.rightMargin=FrostedSurface.dp(c,42);row.addView(text,tp);
         TextView mark=new TextView(c);mark.setText(checked?"\u2713":"");mark.setTextSize(16);mark.setTextColor(color);mark.setGravity(Gravity.CENTER);FrameLayout.LayoutParams mp=new FrameLayout.LayoutParams(FrostedSurface.dp(c,18),-1,Gravity.RIGHT|Gravity.CENTER_VERTICAL);mp.rightMargin=FrostedSurface.dp(c,24);row.addView(mark,mp);
         GradientDrawable mask=new GradientDrawable();mask.setColor(-1);row.setBackground(new RippleDrawable(ColorStateList.valueOf(FrostedSurface.dark(c)?0x22ffffff:0x14000000),null,mask));
-        row.setClickable(true);row.setFocusable(true);row.setSelected(checked);row.setContentDescription(label+(checked?", selected":""));row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){action.run();}});
+        row.setClickable(true);row.setFocusable(true);row.setSelected(checked);row.setContentDescription(checked?L10n.f("%s, selected",label):label);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){action.run();}});
         card.addView(row,new LinearLayout.LayoutParams(-1,FrostedSurface.dp(c,48)));
     }
 }

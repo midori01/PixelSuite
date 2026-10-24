@@ -36,8 +36,8 @@ import java.util.WeakHashMap;
 final class DoodleOverlay extends FrameLayout {
     static final int[] COLORS = {0xffec5f59, 0xfff6c644, 0xff49c562, 0xff2a84c8,
             0xffdf7630, 0xffa1322d, 0xff34c8bc, 0xff0f558a, 0xffa657c0, 0xffec5fbb, 0xfffafafa, 0xff000000};
-    static final String[] COLOR_NAMES = {"Red", "Yellow", "Green", "Blue",
-            "Orange", "Dark red", "Turquoise", "Dark blue", "Purple", "Pink", "White", "Black"};
+    static final String[] COLOR_NAMES = {L10n.t("Red"), L10n.t("Yellow"), L10n.t("Green"), L10n.t("Blue"),
+            L10n.t("Orange"), L10n.t("Dark red"), L10n.t("Turquoise"), L10n.t("Dark blue"), L10n.t("Purple"), L10n.t("Pink"), L10n.t("White"), L10n.t("Black")};
     static final Map<Object, List<Doodle>> models = new WeakHashMap<Object, List<Doodle>>();
     static WeakReference<DoodleOverlay> current = new WeakReference<DoodleOverlay>(null);
 
@@ -899,7 +899,7 @@ final class DoodleOverlay extends FrameLayout {
         LinearLayout shapeRow = new LinearLayout(c);
         for (int i = 0; i < SHAPE_ORDER.length; i++) {
             if (i == SHOWN) {
-                moreShapes = roundButton(c, new MoreShapesIcon(onSurface, density).big(), "More shapes", new OnClickListener() { public void onClick(View v) { setExpanded(true, true); } });
+                moreShapes = roundButton(c, new MoreShapesIcon(onSurface, density).big(), L10n.t("More shapes"), new OnClickListener() { public void onClick(View v) { setExpanded(true, true); } });
                 shapeRow.addView(moreShapes, new LinearLayout.LayoutParams(Math.round(colCompact()), rowH()));
             }
             final int kind = SHAPE_ORDER[i];
@@ -929,7 +929,7 @@ final class DoodleOverlay extends FrameLayout {
             if (i == SHOWN) {
                 moreColors = new View(c);
                 moreColors.setBackground(new RainbowIcon(density));
-                moreColors.setContentDescription("More colours");
+                moreColors.setContentDescription(L10n.t("More colours"));
                 moreColors.setOnClickListener(new OnClickListener() { public void onClick(View v) { setExpanded(true, true); } });
                 colorRow.addView(moreColors, new LinearLayout.LayoutParams(Math.round(colCompact()), rowH()));
             }
@@ -948,12 +948,12 @@ final class DoodleOverlay extends FrameLayout {
         controls.setGravity(Gravity.CENTER_VERTICAL);
         ImageView thin = new ImageView(c);
         thin.setImageDrawable(new StrokeIcon(onSurfaceVariant, density));
-        thin.setContentDescription("Thickness");
+        thin.setContentDescription(L10n.t("Thickness"));
         controls.addView(thin, new LinearLayout.LayoutParams(dp(24), rowH()));
         size = new SeekBar(c);
         size.setMax(23);
         size.setProgress(Math.round(sWidthDp) - 1);
-        size.setContentDescription("Thickness");
+        size.setContentDescription(L10n.t("Thickness"));
         size.setPadding(dp(8), 0, dp(8), 0);
         size.setProgressTintList(android.content.res.ColorStateList.valueOf(accent));
         size.setThumbTintList(android.content.res.ColorStateList.valueOf(accent));
@@ -965,11 +965,11 @@ final class DoodleOverlay extends FrameLayout {
         });
         controls.addView(size, new LinearLayout.LayoutParams(0, rowH(), 1));
         FillIcon fillIcon = new FillIcon(onSurface, density); fillIcon.scale = 1.25f;
-        fillButton = roundButton(c, fillIcon, "Fill shape", new OnClickListener() { public void onClick(View v) {
+        fillButton = roundButton(c, fillIcon, L10n.t("Fill shape"), new OnClickListener() { public void onClick(View v) {
             sFill = !sFill; applyToSelected(); syncPanel();
         }});
         controls.addView(fillButton, new LinearLayout.LayoutParams(dp(38), dp(38)));
-        controls.addView(trashButton = roundButton(c, trashIcon(), "Delete shape", new OnClickListener() { public void onClick(View v) {
+        controls.addView(trashButton = roundButton(c, trashIcon(), L10n.t("Delete shape"), new OnClickListener() { public void onClick(View v) {
             if (selected != null || !shapes.isEmpty()) checkpoint();
             synchronized (models) {
                 if (selected != null) shapes.remove(selected);
@@ -979,7 +979,7 @@ final class DoodleOverlay extends FrameLayout {
             v.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
         }}), new LinearLayout.LayoutParams(dp(38), dp(38)));
         CheckIcon check = new CheckIcon(onAccent, density); check.scale = 1.15f;
-        doneButton = roundButton(c, check, "Done", new OnClickListener() { public void onClick(View v) { leave(false); } });
+        doneButton = roundButton(c, check, L10n.t("Done"), new OnClickListener() { public void onClick(View v) { leave(false); } });
         doneButton.setBackground(new Dot(accent, 0, 0));
         controls.addView(doneButton, new LinearLayout.LayoutParams(Math.round(colCompact()), rowH()));
         box.addView(controls, new LinearLayout.LayoutParams(-1, -2));
@@ -1098,7 +1098,7 @@ final class DoodleOverlay extends FrameLayout {
                 canvas.drawPath(arrow, p);
             }
         };
-        g.setContentDescription("Make Doodles menu smaller");
+        g.setContentDescription(L10n.t("Make Doodles menu smaller"));
         g.setOnTouchListener(new View.OnTouchListener() {
             float startX, startP; android.view.VelocityTracker vt; boolean moved;
             public boolean onTouch(View v, MotionEvent e) {
@@ -1151,7 +1151,7 @@ final class DoodleOverlay extends FrameLayout {
                 canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, h / 2, h / 2, p);
             }
         };
-        pill.setContentDescription("Move Doodles menu");
+        pill.setContentDescription(L10n.t("Move Doodles menu"));
         pill.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent e) {
                 if (e.getActionMasked() == MotionEvent.ACTION_DOWN && Math.abs(e.getX() - v.getWidth() / 2f) > dp(110)) return false;

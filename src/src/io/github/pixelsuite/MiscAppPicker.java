@@ -50,18 +50,18 @@ final class MiscAppPicker {
     private boolean live() { return !activity.isFinishing()&&!activity.isDestroyed()&&dialog.isShowing(); }
     private void open(Presenter presenter) {
         LinearLayout box=new LinearLayout(activity);box.setOrientation(1);box.setPadding(dp(18),0,dp(18),0);
-        search=new EditText(activity);search.setBackground(AppSurfaces.field(activity,12));search.setSingleLine(true);search.setHint("Search apps");search.setTextColor(text);search.setHintTextColor(secondary);search.setContentDescription("Search installed apps");box.addView(search,new LinearLayout.LayoutParams(-1,dp(52)));
+        search=new EditText(activity);search.setBackground(AppSurfaces.field(activity,12));search.setSingleLine(true);search.setHint(L10n.t("Search apps"));search.setTextColor(text);search.setHintTextColor(secondary);search.setContentDescription(L10n.t("Search installed apps"));box.addView(search,new LinearLayout.LayoutParams(-1,dp(52)));
         filter=new Spinner(activity);
-        ArrayAdapter<String> choices=new ArrayAdapter<String>(activity,android.R.layout.simple_spinner_dropdown_item,new String[]{"User apps","System apps","All apps"}) {
+        ArrayAdapter<String> choices=new ArrayAdapter<String>(activity,android.R.layout.simple_spinner_dropdown_item,new String[]{L10n.t("User apps"),L10n.t("System apps"),L10n.t("All apps")}) {
             @Override public View getView(int pos,View view,ViewGroup parent){View v=super.getView(pos,view,parent);if(v instanceof TextView)((TextView)v).setTextColor(text);return v;}
             @Override public View getDropDownView(int pos,View view,ViewGroup parent){View v=super.getDropDownView(pos,view,parent);if(v instanceof TextView)((TextView)v).setTextColor(text);v.setBackground(AppSurfaces.menu(activity,4));return v;}
         };
-        filter.setAdapter(choices);filter.setContentDescription("Filter installed apps");box.addView(filter,new LinearLayout.LayoutParams(-1,dp(48)));
-        status=new TextView(activity);status.setTextColor(secondary);status.setText("Loading apps…");status.setPadding(0,dp(6),0,dp(6));box.addView(status);
+        filter.setAdapter(choices);filter.setContentDescription(L10n.t("Filter installed apps"));box.addView(filter,new LinearLayout.LayoutParams(-1,dp(48)));
+        status=new TextView(activity);status.setTextColor(secondary);status.setText(L10n.t("Loading apps…"));status.setPadding(0,dp(6),0,dp(6));box.addView(status);
         list=new ListView(activity);ToastMotion.watchScroll(list);list.setDivider(null);adapter=new AppsAdapter();list.setAdapter(adapter);
         int listHeight=Math.min(dp(330),Math.max(dp(140),activity.getResources().getDisplayMetrics().heightPixels-dp(420)));
         box.addView(list,new LinearLayout.LayoutParams(-1,listHeight));
-        dialog=new AlertDialog.Builder(activity).setTitle("Choose apps").setView(box).setPositiveButton("Save",null).setNegativeButton("Cancel",null).create();
+        dialog=new AlertDialog.Builder(activity).setTitle(L10n.t("Choose apps")).setView(box).setPositiveButton(L10n.t("Save"),null).setNegativeButton(L10n.t("Cancel"),null).create();
         presenter.show(dialog);dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener(){public void onClick(View v){save();}});
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){refresh();}public void afterTextChanged(Editable e){}});
@@ -75,7 +75,7 @@ final class MiscAppPicker {
                 for(ApplicationInfo app:pm.getInstalledApplications(0)){String label;try{label=app.loadLabel(pm).toString();}catch(Throwable ignored){label=app.packageName;}entries.add(new Entry(app,label));}
                 final Collator collator=Collator.getInstance();Collections.sort(entries,new Comparator<Entry>(){public int compare(Entry a,Entry b){int n=collator.compare(a.label,b.label);return n!=0?n:a.info.packageName.compareTo(b.info.packageName);}});
                 main.post(new Runnable(){public void run(){if(!live())return;all.addAll(entries);original=new TreeSet<String>(saved);selected.addAll(saved);loaded=true;dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);refresh();}});
-            }catch(Throwable error){main.post(new Runnable(){public void run(){if(live())status.setText("Couldn't load apps. Check root access and reopen.");}});}
+            }catch(Throwable error){main.post(new Runnable(){public void run(){if(live())status.setText(L10n.t("Couldn't load apps. Check root access and reopen."));}});}
         }});
     }
     private void refresh() {
@@ -85,17 +85,17 @@ final class MiscAppPicker {
         for(boolean checked:new boolean[]{true,false})for(Entry e:all)
             if(selected.contains(e.info.packageName)==checked&&!e.info.packageName.equals(newestSelected)
                     &&MiscOptions.matches(e.system,kind,e.label,e.info.packageName,query))visible.add(e);
-        adapter.notifyDataSetChanged();status.setText(selected.size()+" selected · "+visible.size()+" shown");
+        adapter.notifyDataSetChanged();status.setText(L10n.f("%d selected · %d shown", selected.size(), visible.size()));
     }
     private void save() {
         if(!loaded||saving)return;saving=true;dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);dialog.setCancelable(false);dialog.setCanceledOnTouchOutside(false);
-        search.setEnabled(false);filter.setEnabled(false);adapter.notifyDataSetChanged();status.setText("Saving…");
+        search.setEnabled(false);filter.setEnabled(false);adapter.notifyDataSetChanged();status.setText(L10n.t("Saving…"));
         final Set<String> next=new TreeSet<String>(selected),changed=MiscOptions.changed(original,next);
         io.execute(new Runnable(){public void run(){
             boolean saved=Root.run(MiscOptions.listCommand(next))!=null;
             if(saved){List<String> on=Root.run("settings get secure "+MiscSystem.A11Y_KEY);if(on!=null&&!on.isEmpty()&&"1".equals(on.get(0))&&!changed.isEmpty())Root.run("true"+MiscOptions.stopCommands(changed));}
             final boolean ok=saved;
-            main.post(new Runnable(){public void run(){if(!live())return;if(ok){dialog.dismiss();AppToast.makeText(activity,"Saved. Changes apply the next time these apps open.",Toast.LENGTH_LONG).show();}else{saving=false;dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);dialog.setCancelable(true);dialog.setCanceledOnTouchOutside(true);search.setEnabled(true);filter.setEnabled(true);adapter.notifyDataSetChanged();status.setText("Couldn't save. Check root access and try again.");}}});
+            main.post(new Runnable(){public void run(){if(!live())return;if(ok){dialog.dismiss();AppToast.makeText(activity,L10n.t("Saved. Changes apply the next time these apps open."),Toast.LENGTH_LONG).show();}else{saving=false;dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);dialog.setCancelable(true);dialog.setCanceledOnTouchOutside(true);search.setEnabled(true);filter.setEnabled(true);adapter.notifyDataSetChanged();status.setText(L10n.t("Couldn't save. Check root access and try again."));}}});
         }});
     }
     private final class AppsAdapter extends BaseAdapter {
@@ -107,7 +107,7 @@ final class MiscAppPicker {
             }else{row=(LinearLayout)reuse;h=(Holder)row.getTag();}
             final Entry entry=visible.get(position);h.name.setText(entry.label);h.pkg.setText(entry.info.packageName);h.check.setChecked(selected.contains(entry.info.packageName));
             Drawable icon=icons.get(entry.info.packageName);if(icon==null)try{icon=entry.info.loadIcon(activity.getPackageManager());icons.put(entry.info.packageName,icon);}catch(Throwable ignored){}h.icon.setImageDrawable(icon);
-            row.setEnabled(!saving);row.setAlpha(saving?.5f:1f);row.setContentDescription(entry.label+(h.check.isChecked()?", selected":", not selected"));row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(saving)return;boolean checked=selected.add(entry.info.packageName);if(!checked)selected.remove(entry.info.packageName);newestSelected=checked?entry.info.packageName:null;refresh();if(checked)list.setSelection(0);}});return row;
+            row.setEnabled(!saving);row.setAlpha(saving?.5f:1f);row.setContentDescription(h.check.isChecked() ? L10n.f("%s, selected", entry.label) : L10n.f("%s, not selected", entry.label));row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(saving)return;boolean checked=selected.add(entry.info.packageName);if(!checked)selected.remove(entry.info.packageName);newestSelected=checked?entry.info.packageName:null;refresh();if(checked)list.setSelection(0);}});return row;
         }
     }
     private static final class Holder {ImageView icon;TextView name,pkg;CheckBox check;}

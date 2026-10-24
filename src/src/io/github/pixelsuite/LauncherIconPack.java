@@ -290,18 +290,18 @@ final class LauncherIconPack {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(0, dp(a, 4), 0, 0);
 
-        final AlertDialog dialog = new AlertDialog.Builder(a).setTitle("Icon pack").setView(root).setNegativeButton("Cancel", null).create();
+        final AlertDialog dialog = new AlertDialog.Builder(a).setTitle(L10n.t("Icon pack")).setView(root).setNegativeButton(L10n.t("Cancel"), null).create();
 
         if (packs.isEmpty()) {
             TextView none = new TextView(a);
-            none.setText("No icon packs installed yet.\nInstall one from the Play Store (or any APK) and it shows here straight away.");
+            none.setText(L10n.t("No icon packs installed yet.\nInstall one from the Play Store (or any APK) and it shows here straight away."));
             none.setTextColor((ink & 0xffffff) | 0xb3000000);
             none.setTextSize(15);
             none.setGravity(Gravity.CENTER);
             none.setPadding(dp(a, 24), dp(a, 20), dp(a, 24), dp(a, 12));
             MenuFont.apply(none);
             root.addView(none, new LinearLayout.LayoutParams(-1, -2));
-            TextView get = pill(a, "Get icon packs", true, accent, ink, dark);
+            TextView get = pill(a, L10n.t("Get icon packs"), true, accent, ink, dark);
             LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(-2, dp(a, 44));
             gp.gravity = Gravity.CENTER_HORIZONTAL;
             gp.bottomMargin = dp(a, 12);
@@ -311,7 +311,7 @@ final class LauncherIconPack {
                 try {
                     a.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=icon%20pack&c=apps")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                 } catch (Throwable t) {
-                    Toast.makeText(a, "Play Store is unavailable", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(a, L10n.t("Play Store is unavailable"), Toast.LENGTH_SHORT).show();
                 }
             });
             FrostedSurface.show(dialog);
@@ -348,7 +348,7 @@ final class LauncherIconPack {
         final EditText field = new EditText(a);
         field.setBackground(null);
         field.setSingleLine(true);
-        field.setHint("Search icons");
+        field.setHint(L10n.t("Search icons"));
         field.setTextSize(16);
         field.setTextColor(ink);
         field.setHintTextColor((ink & 0xffffff) | 0x8c000000);
@@ -361,7 +361,7 @@ final class LauncherIconPack {
         clearGlyph.setTintList(ColorStateList.valueOf(ink));
         clear.setImageDrawable(clearGlyph);
         clear.setPadding(dp(a, 12), dp(a, 12), dp(a, 12), dp(a, 12));
-        clear.setContentDescription("Clear search");
+        clear.setContentDescription(L10n.t("Clear search"));
         clear.setVisibility(View.GONE);
         search.addView(clear, new LinearLayout.LayoutParams(dp(a, 44), dp(a, 44)));
         LinearLayout.LayoutParams fp = new LinearLayout.LayoutParams(-1, dp(a, 52));
@@ -412,7 +412,7 @@ final class LauncherIconPack {
                     }
                 }
             }
-            empty.setText(st.pack == null ? "Loading…" : st.shown.isEmpty() ? "No icons match “" + field.getText().toString().trim() + "”" : "");
+            empty.setText(st.pack == null ? L10n.t("Loading…") : st.shown.isEmpty() ? L10n.f("No icons match “%s”",field.getText().toString().trim()) : "");
             adapter.notifyDataSetChanged();
             grid.setSelection(0);
         };
@@ -470,7 +470,7 @@ final class LauncherIconPack {
                 } catch (Throwable ignored) { }
                 final boolean done = ok;
                 MAIN.post(() -> {
-                    if (!done) { Toast.makeText(a, "Could not use this icon", Toast.LENGTH_SHORT).show(); return; }
+                    if (!done) { Toast.makeText(a, L10n.t("Could not use this icon"), Toast.LENGTH_SHORT).show(); return; }
                     AppPicker.keyboard(field, false);
                     dialog.dismiss();
                     synchronized (LauncherIcon.cache) { LauncherIcon.retire(key); }
@@ -528,7 +528,7 @@ final class LauncherIconPack {
             final List<String> s = p == null ? new ArrayList<String>() : p.suggestions(cn, label);
             MAIN.post(() -> {
                 if (!pkg.equals(st.loading)) return;
-                if (p == null) { Toast.makeText(a, "Could not read this icon pack", Toast.LENGTH_SHORT).show(); return; }
+                if (p == null) { Toast.makeText(a, L10n.t("Could not read this icon pack"), Toast.LENGTH_SHORT).show(); return; }
                 st.pack = p;
                 st.suggested = s;
                 filter.run();

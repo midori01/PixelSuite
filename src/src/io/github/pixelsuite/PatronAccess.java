@@ -105,7 +105,7 @@ final class PatronAccess {
     static void refresh(final Context context){refresh(context,null);}
     static boolean hasSession(Context c){try{verify(c,prefs(c).getString("pass",""),false,true);return loggedIn(c);}catch(Exception invalid){return false;}}
     static long passExpiry(Context c){try{return verify(c,prefs(c).getString("pass",""),false,true).getLong("exp");}catch(Exception invalid){return 0;}}
-    static String membershipMessage(Context c){return "free".equals(prefs(c).getString("membership",""))?"You’re a free member. Choose the paid tier to unlock":"No paid membership found. Choose the paid tier to unlock.";}
+    static String membershipMessage(Context c){return "free".equals(prefs(c).getString("membership",""))?L10n.t("You’re a free member. Choose the paid tier to unlock"):L10n.t("No paid membership found. Choose the paid tier to unlock.");}
     static final String[] PREMIUM_APPS={ChromeCosmetic.PACKAGE,"com.google.android.apps.magazines",CallRecording.PACKAGE,AliasProvider.GOOGLE};
     static void refreshPremiumApps(Context c){
         boolean call=false;
@@ -194,7 +194,7 @@ final class PatronAccess {
     private static void loadProfile(Context c){
         HttpURLConnection connection=null;try{
             connection=(HttpURLConnection)new URL(PatronConfig.SERVER+"/profile").openConnection();connection.setRequestMethod("POST");connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(15000);connection.setReadTimeout(15000);connection.setRequestProperty("Authorization","Bearer "+prefs(c).getString("pass",""));if(connection.getResponseCode()!=200)return;
-            JSONObject profile=new JSONObject(read(connection.getInputStream()));prefs(c).edit().putString("name",profile.optString("name","Patreon account")).apply();
+            JSONObject profile=new JSONObject(read(connection.getInputStream()));prefs(c).edit().putString("name",profile.optString("name",L10n.t("Patreon account"))).apply();
             String full=profile.optString("photo"),small=profile.optString("thumbnail");
             if(!downloadPhoto(c,full)&&!small.equals(full))downloadPhoto(c,small);
         }catch(Exception ignored){}finally{if(connection!=null)connection.disconnect();}

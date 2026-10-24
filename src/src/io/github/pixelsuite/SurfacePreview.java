@@ -151,7 +151,7 @@ final class SurfacePreview extends View implements android.view.ViewTreeObserver
         c.restoreToCount(inner);
         textPaint.setTextSize(13 * d);
         textPaint.setColor(style == SurfaceStyle.OFF && !dark ? 0xff1f1f1f : text);
-        c.drawText("Folder", card.left + 18 * d, card.top + 26 * d, textPaint);
+        c.drawText(L10n.t("Folder"), card.left + 18 * d, card.top + 26 * d, textPaint);
         int[] dots = dark ? DOTS_DARK : DOTS_LIGHT;
         float cy = card.centerY() + 8 * d, step = (card.width() - 36 * d) / 4f, radius = Math.min(14 * d, step * 0.32f);
         for (int i = 0; i < 4; i++) { fill.setColor(dots[i]); c.drawCircle(card.left + 18 * d + step * (i + 0.5f), cy, radius, fill); }

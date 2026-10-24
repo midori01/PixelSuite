@@ -66,7 +66,7 @@ final class DrawerFolderMenu {
         card.removeAllViews();
         final LauncherData.Folder f = DrawerFolders.record(info);
         final int id = f == null ? 0 : f.id;
-        FolderOptions.row(card, "Rename", 1, false, new Runnable() { public void run() { dismiss(); rename(info); } });
+        FolderOptions.row(card, L10n.t("Rename"), 1, false, new Runnable() { public void run() { dismiss(); rename(info); } });
         FolderOptions.sortGroup(card, f != null && f.sort == FolderSort.AUTO, new Runnable() { public void run() {
             dismiss(); LauncherData.Folder now = DrawerFolders.record(info);
             if (now != null && now.sort != FolderSort.AUTO) sort(info);
@@ -77,7 +77,7 @@ final class DrawerFolderMenu {
         PrivacyFolders.addDrawerRow(card, info, new Runnable() { public void run() { dismiss(); } });
         FolderOptions.row(card, "Remove", 8, false, new Runnable() { public void run() { dismiss(); remove(info); } });
         if (BadgeClear.has(info)) {
-            FolderOptions.row(card, "Clear badge", 16, false, new Runnable() { public void run() { dismiss(); BadgeClear.clear(info); } });
+            FolderOptions.row(card, L10n.t("Clear badge"), 16, false, new Runnable() { public void run() { dismiss(); BadgeClear.clear(info); } });
             View badge = card.getChildAt(card.getChildCount() - 1);
             card.removeView(badge); card.addView(badge, 0);
         }
@@ -93,29 +93,29 @@ final class DrawerFolderMenu {
         if (f == null || a == null) return;
         final EditText edit = new EditText(a); edit.setSingleLine(true); edit.setText(f.name); edit.selectAll();
         edit.setPadding(FrostedSurface.dp(a, 20), FrostedSurface.dp(a, 10), FrostedSurface.dp(a, 20), FrostedSurface.dp(a, 10)); edit.setTextSize(16);
-        final AlertDialog dialog = new AlertDialog.Builder(a).setTitle("Rename folder").setView(edit)
-                .setNegativeButton("Cancel", null).setPositiveButton("Save", null).create();
+        final AlertDialog dialog = new AlertDialog.Builder(a).setTitle(L10n.t("Rename folder")).setView(edit)
+                .setNegativeButton(L10n.t("Cancel"), null).setPositiveButton(L10n.t("Save"), null).create();
         FrostedSurface.show(dialog);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             public void onClick(View button) {
                 String name = edit.getText().toString().trim();
-                if (name.length() == 0 || name.length() > 80) { edit.setError("Use a name between 1 and 80 characters"); return; }
+                if (name.length() == 0 || name.length() > 80) { edit.setError(L10n.t("Use a name between 1 and 80 characters")); return; }
                 if (DrawerFolders.renameTo(f.id, name)) dialog.dismiss();
-                else Toast.makeText(a, "Could not save the name", Toast.LENGTH_SHORT).show();
+                else Toast.makeText(a, L10n.t("Could not save the name"), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     static void sort(final Object info) {
         final LauncherData.Folder f = DrawerFolders.record(info); if (f == null) return;
-        confirm("Sort apps?", "Sort the apps in “" + f.name + "” from A to Z?", new Runnable() {
+        confirm(L10n.t("Sort apps?"), L10n.f("Sort the apps in “%s” from A to Z?", f.name), new Runnable() {
             public void run() { DrawerFolders.sortFolder(f.id); }
         });
     }
 
     static void remove(final Object info) {
         final LauncherData.Folder f = DrawerFolders.record(info); if (f == null) return;
-        confirm("Remove folder?", "Remove “" + f.name + "”? Its apps go back to the app drawer. No apps are uninstalled.", new Runnable() {
+        confirm(L10n.t("Remove folder?"), L10n.f("Remove “%s”? Its apps go back to the app drawer. No apps are uninstalled.", f.name), new Runnable() {
             public void run() {
                 android.app.Activity a = LauncherFeatures.activity.get();
                 final String lockKey = a == null ? null : PrivacyBadges.lockedKey(a, info);
@@ -128,8 +128,8 @@ final class DrawerFolderMenu {
     static void confirm(String title, String message, final Runnable yes) {
         Activity a = LauncherFeatures.activity.get(); if (a == null) return;
         FrostedSurface.show(new AlertDialog.Builder(a).setTitle(title).setMessage(message)
-                .setNegativeButton("No", null)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() { public void onClick(DialogInterface d, int which) { yes.run(); } })
+                .setNegativeButton(L10n.t("No"), null)
+                .setPositiveButton(L10n.t("Yes"), new DialogInterface.OnClickListener() { public void onClick(DialogInterface d, int which) { yes.run(); } })
                 .create());
     }
 }

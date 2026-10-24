@@ -241,7 +241,7 @@ public class SettingsActivity extends Activity {
 
             titleLine.addView(title,new LinearLayout.LayoutParams(-2,-2));
 
-            ImageView suiteLogo=new ImageView(this);suiteLogo.setImageDrawable(HomeLinks.suiteMark());suiteLogo.setContentDescription("Pixel Suite logo");
+            ImageView suiteLogo=new ImageView(this);suiteLogo.setImageDrawable(HomeLinks.suiteMark());suiteLogo.setContentDescription(L10n.t("Pixel Suite logo"));
 
             LinearLayout.LayoutParams logoSize=new LinearLayout.LayoutParams(dp(30),dp(30));logoSize.leftMargin=dp(7);titleLine.addView(suiteLogo,logoSize);
 
@@ -469,7 +469,7 @@ public class SettingsActivity extends Activity {
 
         if(lock==null||!lock.isDeviceSecure()){
 
-            AppToast.makeText(this,"Set a phone screen lock first",Toast.LENGTH_LONG).show();finish();return;
+            AppToast.makeText(this,L10n.t("Set a phone screen lock first"),Toast.LENGTH_LONG).show();finish();return;
 
         }
 
@@ -509,7 +509,7 @@ public class SettingsActivity extends Activity {
 
         android.hardware.biometrics.BiometricPrompt.Builder b=new android.hardware.biometrics.BiometricPrompt.Builder(this);
 
-        b.setTitle("Privacy & Security");b.setDescription("Confirm it's you to change privacy settings");return b;
+        b.setTitle(L10n.t("Privacy & Security"));b.setDescription(L10n.t("Confirm it's you to change privacy settings"));return b;
 
     }
 
@@ -780,7 +780,7 @@ public class SettingsActivity extends Activity {
                 featurePreview(page,f);return;
             }
 
-            LinearLayout controls=group(page);row(controls,f.key,Feature.TAP_CHECK.equals(f.key)?"ic_ps_tapwake_toggle":f.icon,mAccent,(Feature.SCREENSHOT_DOODLES.equals(f.key)||Feature.PHOTOS_DOODLES.equals(f.key)?"Use Doodles":LauncherFeatures.HIDE_SHORTCUTS.equals(f.key)?"Hide app shortcuts":LauncherFeatures.ICONS.equals(f.key)?"Use custom app icons":LauncherFeatures.LABEL_SIZE.equals(f.key)?"Customize icon labels":SuperDark.KEY.equals(f.key)?"Use Super Dark-Mode":"Use "+f.title.toLowerCase(java.util.Locale.ROOT)),"Turn this feature on or off.");if(LauncherFeatures.ICONS.equals(f.key))row(controls,DrawerIconColors.KEY,"ic_ps_drawer",mAccent,"Colorful icons in the app drawer (Stock)","With themed icons on, the app drawer and its folders keep each app's own colors. The home screen stays themed.");finishGroup(controls);
+            LinearLayout controls=group(page);row(controls,f.key,Feature.TAP_CHECK.equals(f.key)?"ic_ps_tapwake_toggle":f.icon,mAccent,(Feature.SCREENSHOT_DOODLES.equals(f.key)||Feature.PHOTOS_DOODLES.equals(f.key)?L10n.t("Use Doodles"):LauncherFeatures.HIDE_SHORTCUTS.equals(f.key)?L10n.t("Hide app shortcuts"):LauncherFeatures.ICONS.equals(f.key)?L10n.t("Use custom app icons"):LauncherFeatures.LABEL_SIZE.equals(f.key)?L10n.t("Customize icon labels"):SuperDark.KEY.equals(f.key)?L10n.t("Use Super Dark-Mode"):L10n.f("Use %s",L10n.t(f.title))),"Turn this feature on or off.");if(LauncherFeatures.ICONS.equals(f.key))row(controls,DrawerIconColors.KEY,"ic_ps_drawer",mAccent,"Colorful icons in the app drawer (Stock)","With themed icons on, the app drawer and its folders keep each app's own colors. The home screen stays themed.");finishGroup(controls);
 
             section(page,"How it works");
 
@@ -833,13 +833,13 @@ public class SettingsActivity extends Activity {
 
                 section(page,"Wake the screen");LinearLayout wake=group(page);
 
-                choice(wake,Feature.DOUBLE_TAP_WAKE,"Wake gesture",new String[]{"Single tap","Double tap"});finishGroup(wake);
+                choice(wake,Feature.DOUBLE_TAP_WAKE,"Wake gesture",new String[]{L10n.t("Single tap"),L10n.t("Double tap")});finishGroup(wake);
 
                 explanation(page,"If a double tap doesn't register, tap once more within three seconds.");
 
                 section(page,"Lock-screen taps");LinearLayout lock=group(page);
 
-                choice(lock,Feature.LOCK_SHORTCUTS,"Lock-screen behavior",new String[]{"Pixel Suite","Stock"});finishGroup(lock);
+                choice(lock,Feature.LOCK_SHORTCUTS,"Lock-screen behavior",new String[]{"Pixel Suite",L10n.t("Stock")});finishGroup(lock);
 
                 explanation(page,"Pixel Suite: double-tapping a lock-screen card turns the screen off without opening the card or vibrating. Stock: keeps Google's normal behavior.");
 
@@ -1138,7 +1138,7 @@ public class SettingsActivity extends Activity {
             if("launcher".equals(id)){
                 section(page,"Toasts");
                 LinearLayout toasts=group(page);
-                navChoice(toasts,SystemToasts.KEY,"Show toasts",new String[]{"Top","Middle","Bottom (Stock)"},new String[]{"top","middle","bottom"},"top");
+                navChoice(toasts,SystemToasts.KEY,"Show toasts",new String[]{L10n.t("Top"),L10n.t("Middle"),L10n.t("Bottom (Stock)")},new String[]{"top","middle","bottom"},"top");
                 finishGroup(toasts);
             }
             if("themes".equals(id))((LinearLayout.LayoutParams)features.getLayoutParams()).bottomMargin=dp(6);
@@ -1248,7 +1248,7 @@ public class SettingsActivity extends Activity {
 
             supportSurface(button);button.setElevation(dp(1));
 
-            button.setClickable(true);button.setFocusable(true);button.setContentDescription(CommunityLinks.NAMES[index]+". "+CommunityLinks.CAPTIONS[index]+". Opens an external app.");
+            button.setClickable(true);button.setFocusable(true);button.setContentDescription(L10n.f("%s. %s. Opens an external app.",CommunityLinks.NAMES[index],CommunityLinks.CAPTIONS[index]));
 
             button.setOnClickListener(new View.OnClickListener(){public void onClick(View v){CommunityLinks.open(SettingsActivity.this,index);}});
 
@@ -1324,7 +1324,7 @@ public class SettingsActivity extends Activity {
 
             TextView caption=text(CommunityLinks.CAPTIONS[index],14,mTextSecondary,false);caption.setPadding(0,dp(4),0,0);labels.addView(caption);button.addView(labels,new LinearLayout.LayoutParams(0,-2,1));
 
-            button.setClickable(true);button.setFocusable(true);button.setContentDescription(CommunityLinks.NAMES[index]+". "+CommunityLinks.CAPTIONS[index]+". Opens an external app.");button.setOnClickListener(new View.OnClickListener(){public void onClick(View v){CommunityLinks.open(SettingsActivity.this,index);}});
+            button.setClickable(true);button.setFocusable(true);button.setContentDescription(L10n.f("%s. %s. Opens an external app.",CommunityLinks.NAMES[index],CommunityLinks.CAPTIONS[index]));button.setOnClickListener(new View.OnClickListener(){public void onClick(View v){CommunityLinks.open(SettingsActivity.this,index);}});
 
             LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(-1,-2,0);if(position>0)bp.topMargin=dp(8);actions.addView(button,bp);
 
@@ -1333,12 +1333,12 @@ public class SettingsActivity extends Activity {
     }
 
     private void updateAdProtectionStatus(){
-        if(mAdProtectionStatus!=null){mAdProtectionStatus.setText(PatronAccess.unlocked()?"Included with your Patreon unlock":"Unlock ad blocking with Patreon");mAdProtectionStatus.setClickable(!PatronAccess.unlocked());mAdProtectionStatus.setFocusable(!PatronAccess.unlocked());}
+        if(mAdProtectionStatus!=null){mAdProtectionStatus.setText(PatronAccess.unlocked()?L10n.t("Included with your Patreon unlock"):L10n.t("Unlock ad blocking with Patreon"));mAdProtectionStatus.setClickable(!PatronAccess.unlocked());mAdProtectionStatus.setFocusable(!PatronAccess.unlocked());}
     }
     private void appendScopeFooter(LinearLayout page,String id){
         String note="do_not_annoy".equals(id)?FeatureScopes.doNotAnnoy(mDnaPixelStack):FeatureScopes.get(id);if(note==null)return;
         if(ScopePanel.installedEntries(this,ScopePanel.entries(id,pageTitle(id),note)).isEmpty())return;
-        String title=Feature.SCREENSHOT_DOODLES.equals(id)||Feature.SCREENSHOT_FREE_CROP.equals(id)?"Pixel Studio setup":Feature.PHOTOS_DOODLES.equals(id)?"Google Photos setup":"LSPosed scope";
+        String title=Feature.SCREENSHOT_DOODLES.equals(id)||Feature.SCREENSHOT_FREE_CROP.equals(id)?L10n.t("Pixel Studio setup"):Feature.PHOTOS_DOODLES.equals(id)?L10n.t("Google Photos setup"):L10n.t("LSPosed scope");
         section(page,title);ScopePanel.add(this,page,id,pageTitle(id),note,mText,mTextSecondary,mAccent);
     }
     private static final class PreviewEntry {
@@ -1369,7 +1369,7 @@ public class SettingsActivity extends Activity {
 
         section(page,"Feature preview");View previewHeading=page.getChildAt(page.getChildCount()-1);LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setPadding(dp(12),dp(12),dp(12),dp(12));card.setBackground(AppSurfaces.card(this,24));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(16);page.addView(card,cp);
 
-        mFeaturePreview=new FeaturePreview(this,feature.key,mAccent,mOnAccent,mText,mTextSecondary,mCard,mDark);mFeaturePreview.setContentDescription(feature.title+". A looping demo. It doesn't change your settings.");card.addView(mFeaturePreview,new LinearLayout.LayoutParams(-1,dp("privacy_combined".equals(feature.key)?400:(SuperDark.KEY.equals(feature.key)||LauncherFeatures.DRAWER.equals(feature.key)||LauncherFeatures.GRID.equals(feature.key)||"folder_sort".equals(feature.key)||FolderDrag.TWO_FINGER.equals(feature.key)||MultiDrag.KEY.equals(feature.key))?330:300)));mPreviews.add(mFeaturePreview);mPreviewEntries.add(new PreviewEntry(previewHeading,card,mFeaturePreview,feature.title));
+        mFeaturePreview=new FeaturePreview(this,feature.key,mAccent,mOnAccent,mText,mTextSecondary,mCard,mDark);mFeaturePreview.setContentDescription(L10n.f("%s. A looping demo. It doesn't change your settings.",L10n.t(feature.title)));card.addView(mFeaturePreview,new LinearLayout.LayoutParams(-1,dp("privacy_combined".equals(feature.key)?400:(SuperDark.KEY.equals(feature.key)||LauncherFeatures.DRAWER.equals(feature.key)||LauncherFeatures.GRID.equals(feature.key)||"folder_sort".equals(feature.key)||FolderDrag.TWO_FINGER.equals(feature.key)||MultiDrag.KEY.equals(feature.key))?330:300)));mPreviews.add(mFeaturePreview);mPreviewEntries.add(new PreviewEntry(previewHeading,card,mFeaturePreview,feature.title));
 
     }
 
@@ -1395,37 +1395,37 @@ public class SettingsActivity extends Activity {
 
     private void startBackup(){
         try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json").putExtra(Intent.EXTRA_TITLE,Backup.fileName());startActivityForResult(i,Backup.SAVE);}
-        catch(Exception e){AppToast.makeText(this,"No file picker available",Toast.LENGTH_LONG).show();}
+        catch(Exception e){AppToast.makeText(this,L10n.t("No file picker available"),Toast.LENGTH_LONG).show();}
     }
     private void startRestore(){
         try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*"+"/"+"*").putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"application/json","text/plain","application/octet-stream"});startActivityForResult(i,Backup.OPEN);}
-        catch(Exception e){AppToast.makeText(this,"No file picker available",Toast.LENGTH_LONG).show();}
+        catch(Exception e){AppToast.makeText(this,L10n.t("No file picker available"),Toast.LENGTH_LONG).show();}
     }
     private void backupResult(final int request,final Intent data){
         final android.net.Uri uri=data==null?null:data.getData();if(uri==null)return;
         if(request==Backup.SAVE){
-            AppToast.makeText(this,"Backing up…",Toast.LENGTH_SHORT).show();
+            AppToast.makeText(this,L10n.t("Backing up…"),Toast.LENGTH_SHORT).show();
             IO.execute(new Runnable(){public void run(){boolean ok;try{String json=Backup.create(SettingsActivity.this);java.io.OutputStream out=getContentResolver().openOutputStream(uri,"wt");if(out==null)throw new java.io.IOException();try{out.write(json.getBytes("UTF-8"));}finally{out.close();}ok=true;}catch(Throwable t){ok=false;}
-                final boolean done=ok;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(done)AppToast.makeText(SettingsActivity.this,"Backup saved",Toast.LENGTH_SHORT).show();else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,"Couldn't back up: root access needed",Toast.LENGTH_LONG).show();}}});}});
+                final boolean done=ok;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(done)AppToast.makeText(SettingsActivity.this,L10n.t("Backup saved"),Toast.LENGTH_SHORT).show();else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,L10n.t("Couldn't back up: root access needed"),Toast.LENGTH_LONG).show();}}});}});
             return;
         }
         IO.execute(new Runnable(){public void run(){org.json.JSONObject read=null;try{java.io.InputStream in=getContentResolver().openInputStream(uri);if(in!=null)try{java.io.ByteArrayOutputStream b=new java.io.ByteArrayOutputStream();byte[] buf=new byte[65536];for(int n;(n=in.read(buf))>0;)b.write(buf,0,n);read=Backup.read(b.toString("UTF-8"));}finally{in.close();}}catch(Throwable ignored){}
             final org.json.JSONObject backup=read;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;
-                if(backup==null){AppToast.makeText(SettingsActivity.this,"That isn't a Pixel Suite backup",Toast.LENGTH_LONG).show();return;}
-                showSettingsDialog(new AlertDialog.Builder(SettingsActivity.this).setTitle("Restore this backup?").setMessage(Backup.summary(backup)).setNegativeButton("Cancel",null).setPositiveButton("Restore",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){
-                    AppToast.makeText(SettingsActivity.this,"Restoring…",Toast.LENGTH_SHORT).show();
+                if(backup==null){AppToast.makeText(SettingsActivity.this,L10n.t("That isn't a Pixel Suite backup"),Toast.LENGTH_LONG).show();return;}
+                showSettingsDialog(new AlertDialog.Builder(SettingsActivity.this).setTitle(L10n.t("Restore this backup?")).setMessage(Backup.summary(backup)).setNegativeButton(L10n.t("Cancel"),null).setPositiveButton(L10n.t("Restore"),new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){
+                    AppToast.makeText(SettingsActivity.this,L10n.t("Restoring…"),Toast.LENGTH_SHORT).show();
                     IO.execute(new Runnable(){public void run(){final boolean ok=Backup.restore(SettingsActivity.this,backup);mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;
-                        if(ok){AppToast.makeText(SettingsActivity.this,"Backup restored",Toast.LENGTH_SHORT).show();recreate();}else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,"Couldn't restore: root access needed",Toast.LENGTH_LONG).show();}}});}});
+                        if(ok){AppToast.makeText(SettingsActivity.this,L10n.t("Backup restored"),Toast.LENGTH_SHORT).show();recreate();}else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,L10n.t("Couldn't restore: root access needed"),Toast.LENGTH_LONG).show();}}});}});
                 }}).create());}});}});
     }
 
-    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==CallRecordingSettings.PICK_FOLDER&&mCallRecordingSettings!=null){mCallRecordingSettings.result(result,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText("Installation permission was not enabled. Tap Download and install when ready.");}catch(Exception unavailable){}}}
+    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==CallRecordingSettings.PICK_FOLDER&&mCallRecordingSettings!=null){mCallRecordingSettings.result(result,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText(L10n.t("Installation permission was not enabled. Tap Download and install when ready."));}catch(Exception unavailable){}}}
 
     private void buildUpdates(LinearLayout page){
 
         explanation(page,"Pixel Suite checks for official updates from time to time. Download an update here, follow its progress, then confirm the install.");
 
-        final android.widget.Switch automatic=new android.widget.Switch(this);automatic.setText("Check for updates automatically");android.graphics.drawable.Drawable updateIcon=drawable("ic_ps_update");if(updateIcon!=null){updateIcon=updateIcon.mutate();updateIcon.setTint(mAccent);updateIcon.setBounds(0,0,dp(24),dp(24));automatic.setCompoundDrawables(updateIcon,null,null,null);automatic.setCompoundDrawablePadding(dp(12));}automatic.setTextColor(mText);automatic.setChecked(ReleaseUpdates.enabled(this));automatic.setPadding(dp(18),dp(16),dp(18),dp(16));page.addView(automatic);
+        final android.widget.Switch automatic=new android.widget.Switch(this);automatic.setText(L10n.t("Check for updates automatically"));android.graphics.drawable.Drawable updateIcon=drawable("ic_ps_update");if(updateIcon!=null){updateIcon=updateIcon.mutate();updateIcon.setTint(mAccent);updateIcon.setBounds(0,0,dp(24),dp(24));automatic.setCompoundDrawables(updateIcon,null,null,null);automatic.setCompoundDrawablePadding(dp(12));}automatic.setTextColor(mText);automatic.setChecked(ReleaseUpdates.enabled(this));automatic.setPadding(dp(18),dp(16),dp(18),dp(16));page.addView(automatic);
 
         automatic.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener(){public void onCheckedChanged(android.widget.CompoundButton v,boolean checked){ReleaseUpdates.prefs(SettingsActivity.this).edit().putBoolean("enabled",checked).apply();ReleaseUpdates.schedule(SettingsActivity.this);if(checked)ReleaseUpdates.check(SettingsActivity.this,false,null);}});
 
@@ -1433,9 +1433,9 @@ public class SettingsActivity extends Activity {
 
         LinearLayout actions=group(page);
 
-        navigation(actions,"Check now","Check for updates now","ic_ps_update",new Runnable(){public void run(){status.setText("Checking both repositories…");ReleaseUpdates.check(SettingsActivity.this,true,new ReleaseUpdates.Result(){public void done(String message){if(!isDestroyed())status.setText(message);}});}});
+        navigation(actions,"Check now","Check for updates now","ic_ps_update",new Runnable(){public void run(){status.setText(L10n.t("Checking both repositories…"));ReleaseUpdates.check(SettingsActivity.this,true,new ReleaseUpdates.Result(){public void done(String message){if(!isDestroyed())status.setText(message);}});}});
 
-        navigation(actions,"Allow update notifications","Turn on notifications in Android settings","ic_ps_update",new Runnable(){public void run(){if(android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=0)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},201);else{Intent settings=new Intent("android.settings.APP_NOTIFICATION_SETTINGS");settings.putExtra("android.provider.extra.APP_PACKAGE",getPackageName());try{startActivity(settings);}catch(Exception unavailable){AppToast.makeText(SettingsActivity.this,"Open Android app settings to manage notifications.",0).show();}}}});
+        navigation(actions,"Allow update notifications","Turn on notifications in Android settings","ic_ps_update",new Runnable(){public void run(){if(android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=0)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},201);else{Intent settings=new Intent("android.settings.APP_NOTIFICATION_SETTINGS");settings.putExtra("android.provider.extra.APP_PACKAGE",getPackageName());try{startActivity(settings);}catch(Exception unavailable){AppToast.makeText(SettingsActivity.this,L10n.t("Open Android app settings to manage notifications."),0).show();}}}});
 
         navigation(actions,"Download and install","Download and install the update in Pixel Suite","ic_ps_update",new Runnable(){public void run(){beginUpdateInstall();}});
 
@@ -1448,7 +1448,7 @@ public class SettingsActivity extends Activity {
         if(mGmsScopeShown)return;
         if(isFinishing()||isDestroyed()||!mPageResumed){GmsScope.checked=false;return;}
         mGmsScopeShown=true;
-        showSettingsDialog(new AlertDialog.Builder(this).setTitle(reboot?GmsScope.REBOOT_TITLE:GmsScope.TITLE).setMessage(reboot?GmsScope.REBOOT_MESSAGE:GmsScope.MESSAGE).setPositiveButton("OK",null).create());
+        showSettingsDialog(new AlertDialog.Builder(this).setTitle(L10n.t(reboot?GmsScope.REBOOT_TITLE:GmsScope.TITLE)).setMessage(L10n.t(reboot?GmsScope.REBOOT_MESSAGE:GmsScope.MESSAGE)).setPositiveButton("OK",null).create());
     }
 
     private final java.util.List<AlertDialog> mSettingsDialogs=new java.util.ArrayList<AlertDialog>();
@@ -1539,9 +1539,9 @@ public class SettingsActivity extends Activity {
                 android.graphics.drawable.LayerDrawable bubble=new android.graphics.drawable.LayerDrawable(new Drawable[]{AppSurfaces.role(this,circle,999,SuperDarkPalette.FIELD,false),mark});
                 bubble.setLayerInset(1,dp(4),dp(5),dp(6),dp(5));bubble.setBounds(0,0,dp(24),dp(24));
                 android.text.SpannableStringBuilder linked=new android.text.SpannableStringBuilder(note.getText());
-                int end=linked.toString().indexOf("Telegram for the APK.");
+                String telegram=L10n.t("Telegram for the APK.");int end=linked.toString().indexOf(telegram);
                 if(end>=0){
-                    end+="Telegram for the APK.".length();linked.insert(end,"\u00A0\uFFFC");
+                    end+=telegram.length();linked.insert(end,"\u00A0\uFFFC");
                     linked.setSpan(new android.text.style.ImageSpan(bubble){
                         @Override public int getSize(android.graphics.Paint paint,CharSequence text,int start,int end,android.graphics.Paint.FontMetricsInt metrics){
                             int size=getDrawable().getBounds().width();
@@ -1614,7 +1614,7 @@ public class SettingsActivity extends Activity {
 
         if("Google apps".equals(title)||"google_apps".equals(getIntent().getStringExtra("page")))PatronUi.navigationBadge(this,row,title);
 
-        row.setClickable(true);row.setFocusable(true);row.setContentDescription(title);row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(PatronAccess.protectedPage(getIntent().getStringExtra("page"))&&!PatronAccess.unlocked()){PatronPaper.open(SettingsActivity.this,0,null);return;}action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        row.setClickable(true);row.setFocusable(true);row.setContentDescription(L10n.t(title));row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(PatronAccess.protectedPage(getIntent().getStringExtra("page"))&&!PatronAccess.unlocked()){PatronPaper.open(SettingsActivity.this,0,null);return;}action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
 
     }
 
@@ -1646,7 +1646,7 @@ public class SettingsActivity extends Activity {
 
         TextView meter=mChoiceLabels.get(LauncherFeatures.LABEL_LEVEL);
 
-        if(meter!=null)meter.setText("Level "+(level+1)+" · "+IconLabelScale.name(level)+(level==2?" (Default)":""));
+        if(meter!=null)meter.setText(L10n.f("Level %d · %s%s",level+1,IconLabelScale.name(level),level==2?L10n.t(" (Default)"):""));
 
         if(mLabelPreview!=null)mLabelPreview.setTextSize(16*IconLabelScale.factor(level));
 
@@ -1656,7 +1656,7 @@ public class SettingsActivity extends Activity {
 
     private void showStyle(int value){
         TextView meter=mChoiceLabels.get(SurfaceStyle.KEY);
-        if(meter!=null)meter.setText(STYLE_LABELS[value]);
+        if(meter!=null)meter.setText(L10n.t(STYLE_LABELS[value]));
         if(mStylePreview!=null)mStylePreview.setStyle(value);
         for(int i=0;i<3;i++)if(mStyleStops[i]!=null){
             mStyleNames[i].setTextColor(i==value?mAccent:mText);
@@ -1672,18 +1672,18 @@ public class SettingsActivity extends Activity {
         mChoiceLabels.put(SurfaceStyle.KEY,meter);mChoiceItems.put(SurfaceStyle.KEY,SurfaceStyle.NAMES);mChoiceOffsets.put(SurfaceStyle.KEY,0);
         mStyleSlider=new LabelSizeSlider(this,mAccent,mDark?0xff686970:0xff9d9da5,3);mStyleSlider.setEnabled(false);
         mStyleSlider.setProgressTintList(ColorStateList.valueOf(mAccent));mStyleSlider.setThumbTintList(ColorStateList.valueOf(mAccent));
-        mStyleSlider.setContentDescription("Surface style, three options");box.addView(mStyleSlider,new LinearLayout.LayoutParams(-1,dp(48)));
+        mStyleSlider.setContentDescription(L10n.t("Surface style, three options"));box.addView(mStyleSlider,new LinearLayout.LayoutParams(-1,dp(48)));
         LinearLayout stops=new LinearLayout(this);stops.setOrientation(0);stops.setGravity(Gravity.TOP);stops.setBaselineAligned(false);
         String[] captions={"No blur anywhere","Google's own look","Blurred and tinted"};
         for(int i=0;i<3;i++){
             final int stop=i;LinearLayout column=new LinearLayout(this);column.setOrientation(1);column.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);column.setPadding(dp(4),dp(4),dp(4),dp(8));
             TextView name=text(STYLE_LABELS[i],14,mText,false);name.setTypeface(Typeface.create("sans-serif-medium",Typeface.NORMAL));name.setSingleLine(true);name.setEllipsize(android.text.TextUtils.TruncateAt.END);name.setGravity(Gravity.CENTER);column.addView(name,new LinearLayout.LayoutParams(-1,-2));
             TextView description=text(captions[i],12,mTextSecondary,false);description.setMaxLines(2);description.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);LinearLayout.LayoutParams descSize=new LinearLayout.LayoutParams(-1,-2);descSize.topMargin=dp(3);column.addView(description,descSize);
-            column.setContentDescription(STYLE_LABELS[i]+", "+captions[i]);column.setEnabled(false);column.setAlpha(.42f);column.setOnClickListener(v->{if(mStyleLoaded&&mStyleSlider.isEnabled()){mStyleSlider.setProgress(stop);saveStyle(stop);}});
+            column.setContentDescription(L10n.f("%s, %s",L10n.t(STYLE_LABELS[i]),L10n.t(captions[i])));column.setEnabled(false);column.setAlpha(.42f);column.setOnClickListener(v->{if(mStyleLoaded&&mStyleSlider.isEnabled()){mStyleSlider.setProgress(stop);saveStyle(stop);}});
             mStyleStops[i]=column;mStyleNames[i]=name;mStyleDescriptions[i]=description;stops.addView(column,new LinearLayout.LayoutParams(0,-2,1));
         }
         box.addView(stops,new LinearLayout.LayoutParams(-1,-2));
-        mStylePreview=new SurfacePreview(this,mDark,mAccent,mText);mStylePreview.setContentDescription("Preview of the chosen surface style on a folder over a wallpaper");
+        mStylePreview=new SurfacePreview(this,mDark,mAccent,mText);mStylePreview.setContentDescription(L10n.t("Preview of the chosen surface style on a folder over a wallpaper"));
         LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(220));pp.topMargin=dp(12);box.addView(mStylePreview,pp);
         mStyleSuperDarkNote=text("With Super Dark-Mode, panels stay black. Blur Off removes their rims; Stock and Frosted Glass keep them. Your choice applies fully when Super Dark is off.",15,mTextSecondary,false);mStyleSuperDarkNote.setLineSpacing(dp(3),1);mStyleSuperDarkNote.setVisibility(View.GONE);LinearLayout.LayoutParams noteSize=new LinearLayout.LayoutParams(-1,-2);noteSize.topMargin=dp(12);box.addView(mStyleSuperDarkNote,noteSize);
         mStyleSlider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener(){
@@ -1696,7 +1696,7 @@ public class SettingsActivity extends Activity {
 
     private void updateStyleControls(){
         if(mStyleSlider==null)return;
-        mStyleSlider.setEnabled(mStyleLoaded);mStyleSlider.setAlpha(mStyleLoaded?1f:.42f);mStyleSlider.setContentDescription("Surface style, three options");
+        mStyleSlider.setEnabled(mStyleLoaded);mStyleSlider.setAlpha(mStyleLoaded?1f:.42f);mStyleSlider.setContentDescription(L10n.t("Surface style, three options"));
         if(mStyleSuperDarkNote!=null){boolean dark=(getResources().getConfiguration().uiMode&Configuration.UI_MODE_NIGHT_MASK)==Configuration.UI_MODE_NIGHT_YES;mStyleSuperDarkNote.setVisibility(dark&&mStyleSuperDark?View.VISIBLE:View.GONE);}
         mStyleSlider.setProgress(mSavedStyle);showStyle(mSavedStyle);
     }
@@ -1711,7 +1711,7 @@ public class SettingsActivity extends Activity {
 
         final String cmd="settings put secure "+SurfaceStyle.KEY+" "+value+"; settings put global disable_window_blurs "+(blurOff?1:0)+"; am force-stop "+PhotosEditor.PACKAGE+" >/dev/null 2>&1; true";
 
-        IO.execute(new Runnable(){public void run(){final boolean ok=Root.run(cmd)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){SurfaceStyle.refresh();RestartPill.changed(SurfaceStyle.KEY);if(mRestart!=null)mRestart.refresh();}if(!ok){showRootBanner(true);AppToast.makeText(SettingsActivity.this,"Could not save the surface style",Toast.LENGTH_SHORT).show();load();}}});}});
+        IO.execute(new Runnable(){public void run(){final boolean ok=Root.run(cmd)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){SurfaceStyle.refresh();RestartPill.changed(SurfaceStyle.KEY);if(mRestart!=null)mRestart.refresh();}if(!ok){showRootBanner(true);AppToast.makeText(SettingsActivity.this,L10n.t("Could not save the surface style"),Toast.LENGTH_SHORT).show();load();}}});}});
 
     }
 
@@ -1731,13 +1731,13 @@ public class SettingsActivity extends Activity {
 
         mLabelSlider.setProgressTintList(ColorStateList.valueOf(mAccent));mLabelSlider.setThumbTintList(ColorStateList.valueOf(mAccent));
 
-        mLabelSlider.setContentDescription("Icon label size, five levels");
+        mLabelSlider.setContentDescription(L10n.t("Icon label size, five levels"));
 
         box.addView(mLabelSlider,new LinearLayout.LayoutParams(-1,dp(48)));
 
         LinearLayout stops=new LinearLayout(this);stops.setOrientation(0);
 
-        for(int i=0;i<5;i++){final int stop=i;TextView label=text((i+1)+"\n"+IconLabelScale.name(i),13,mTextSecondary,false);label.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);label.setPadding(dp(5),dp(4),dp(5),dp(8));label.setContentDescription("Level "+(i+1)+", "+IconLabelScale.name(i));label.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(mLabelSlider.isEnabled()){mLabelSlider.setProgress(stop);saveLabelSize(stop);}}});mLabelStops[i]=label;stops.addView(label,new LinearLayout.LayoutParams(0,dp(56),1));}
+        for(int i=0;i<5;i++){final int stop=i;TextView label=text((i+1)+"\n"+IconLabelScale.name(i),13,mTextSecondary,false);label.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL);label.setPadding(dp(5),dp(4),dp(5),dp(8));label.setContentDescription(L10n.f("Level %d, %s",i+1,IconLabelScale.name(i)));label.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(mLabelSlider.isEnabled()){mLabelSlider.setProgress(stop);saveLabelSize(stop);}}});mLabelStops[i]=label;stops.addView(label,new LinearLayout.LayoutParams(0,dp(56),1));}
 
         box.addView(stops,new LinearLayout.LayoutParams(-1,-2));
 
@@ -1759,7 +1759,7 @@ public class SettingsActivity extends Activity {
 
         showLabelSize(value);mSaves++;
 
-        IO.execute(new Runnable(){public void run(){final boolean ok=Root.run("settings put secure "+LauncherFeatures.LABEL_LEVEL+" "+IconLabelScale.level(value))!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){RestartPill.changed(LauncherFeatures.LABEL_LEVEL);if(mRestart!=null)mRestart.refresh();}if(!ok){showRootBanner(true);AppToast.makeText(SettingsActivity.this,"Could not save text size",Toast.LENGTH_SHORT).show();load();}}});}});
+        IO.execute(new Runnable(){public void run(){final boolean ok=Root.run("settings put secure "+LauncherFeatures.LABEL_LEVEL+" "+IconLabelScale.level(value))!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){RestartPill.changed(LauncherFeatures.LABEL_LEVEL);if(mRestart!=null)mRestart.refresh();}if(!ok){showRootBanner(true);AppToast.makeText(SettingsActivity.this,L10n.t("Could not save text size"),Toast.LENGTH_SHORT).show();load();}}});}});
 
     }
 
@@ -1772,10 +1772,10 @@ public class SettingsActivity extends Activity {
         section(page,"How it works");explanation(page,"Choose Back, Home or Recent for each side. Hold Home for Circle to Search or Gemini. Swipe gestures still work.");
         mNavBody=new LinearLayout(this);mNavBody.setOrientation(1);page.addView(mNavBody,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout sides=group(mNavBody);
-        String[] labels={"Home","Back","Recent","Hide"},values={"home","back","recent","hide"};
+        String[] labels={L10n.t("Home"),L10n.t("Back"),L10n.t("Recent"),L10n.t("Hide")},values={"home","back","recent","hide"};
         navChoice(sides,NavButtons.LEFT,"Left button",labels,values,"back");
         navChoice(sides,NavButtons.RIGHT,"Right button",labels,values,"recent");finishGroup(sides);
-        mNavHome=group(mNavBody);navChoice(mNavHome,NavButtons.HOLD_HOME,"Hold Home for",new String[]{"Circle to Search","Gemini","Nothing"},new String[]{"circle","gemini","none"},"circle");finishGroup(mNavHome);
+        mNavHome=group(mNavBody);navChoice(mNavHome,NavButtons.HOLD_HOME,"Hold Home for",new String[]{L10n.t("Circle to Search"),"Gemini",L10n.t("Nothing")},new String[]{"circle","gemini","none"},"circle");finishGroup(mNavHome);
         explanation(mNavBody,"Swipe gestures continue to work. Changes apply right away.");
         updateNavigationButtons();
     }
@@ -1783,8 +1783,8 @@ public class SettingsActivity extends Activity {
         String current=navValue(key,fallback);int selected=java.util.Arrays.asList(values).indexOf(current);if(selected<0)selected=java.util.Arrays.asList(values).indexOf(fallback);
         navigation(group,title,labels[Math.max(0,selected)],SystemToasts.KEY.equals(key)?"ic_ps_toast":NavButtons.LEFT.equals(key)?"ic_ps_nav_left":NavButtons.RIGHT.equals(key)?"ic_ps_nav_right":"ic_ps_nav_hold",()->{
             int choice=java.util.Arrays.asList(values).indexOf(navValue(key,fallback));
-            showSettingsDialog(new AlertDialog.Builder(this).setTitle(title).setSingleChoiceItems(labels,Math.max(0,choice),(dialog,which)->{
-                dialog.dismiss();mSaves++;final String value=values[which];IO.execute(()->{final boolean ok=Root.run("settings put secure "+key+" "+value)!=null;mMain.post(()->{if(isFinishing()||isDestroyed())return;if(ok){mNavSaved.put(key,value);mNavLabels.get(key).setText(labels[which]);updateNavigationButtons();}else{showRootBanner(true);AppToast.makeText(this,"Couldn't save: root access needed",Toast.LENGTH_SHORT).show();}});});
+            showSettingsDialog(new AlertDialog.Builder(this).setTitle(L10n.t(title)).setSingleChoiceItems(labels,Math.max(0,choice),(dialog,which)->{
+                dialog.dismiss();mSaves++;final String value=values[which];IO.execute(()->{final boolean ok=Root.run("settings put secure "+key+" "+value)!=null;mMain.post(()->{if(isFinishing()||isDestroyed())return;if(ok){mNavSaved.put(key,value);mNavLabels.get(key).setText(labels[which]);updateNavigationButtons();}else{showRootBanner(true);AppToast.makeText(this,L10n.t("Couldn't save: root access needed"),Toast.LENGTH_SHORT).show();}});});
             }).create());
         });mNavLabels.put(key,navigationSummary(group));
     }
@@ -1817,7 +1817,7 @@ public class SettingsActivity extends Activity {
 
                 if(isFinishing()||isDestroyed())return;if(current==null){showRootBanner(true);return;}
 
-                showSettingsDialog(new AlertDialog.Builder(SettingsActivity.this).setTitle(title).setSingleChoiceItems(items,Math.max(0,Math.min(items.length-1,current[0]-offset)),new DialogInterface.OnClickListener(){public void onClick(DialogInterface dialog,final int which){
+                showSettingsDialog(new AlertDialog.Builder(SettingsActivity.this).setTitle(L10n.t(title)).setSingleChoiceItems(items,Math.max(0,Math.min(items.length-1,current[0]-offset)),new DialogInterface.OnClickListener(){public void onClick(DialogInterface dialog,final int which){
 
                     dialog.dismiss();mSaves++;IO.execute(new Runnable(){public void run(){
 
@@ -1825,11 +1825,11 @@ public class SettingsActivity extends Activity {
 
                         if(Feature.DOUBLE_TAP_WAKE.equals(key))command+="; settings put secure doze_tap_gesture 1";
 
-                        final boolean ok=Root.run(command)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){updateChoiceLabel(key,which+offset);RestartPill.changed(key);if(mRestart!=null)mRestart.refresh();}else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,"Could not save this option",0).show();}}});
+                        final boolean ok=Root.run(command)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok){updateChoiceLabel(key,which+offset);RestartPill.changed(key);if(mRestart!=null)mRestart.refresh();}else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,L10n.t("Could not save this option"),0).show();}}});
 
                     }});
 
-                }}).setNegativeButton("Cancel",null).create());
+                }}).setNegativeButton(L10n.t("Cancel"),null).create());
 
             }});}});
 
@@ -1970,7 +1970,7 @@ public class SettingsActivity extends Activity {
 
                         if (isFinishing() || isDestroyed()) return;
 
-                        if (ok) {searchSaved(key,on);if(DoNotAnnoy.KEY.equals(key)){DoNotAnnoyTile.refresh(SettingsActivity.this);if(on)DoNotAnnoyPermissions.request(SettingsActivity.this);}updateMiscPicker();if(MiscSystem.DEV_KEY.equals(key))AppToast.makeText(SettingsActivity.this,"Reopen apps that were already open.",Toast.LENGTH_LONG).show();if(MiscSystem.A11Y_KEY.equals(key))AppToast.makeText(SettingsActivity.this,"Changes apply the next time the chosen apps open.",Toast.LENGTH_LONG).show();RestartPill.changed(key); if (mRestart != null) mRestart.refresh(); return; }
+                        if (ok) {searchSaved(key,on);if(DoNotAnnoy.KEY.equals(key)){DoNotAnnoyTile.refresh(SettingsActivity.this);if(on)DoNotAnnoyPermissions.request(SettingsActivity.this);}updateMiscPicker();if(MiscSystem.DEV_KEY.equals(key))AppToast.makeText(SettingsActivity.this,L10n.t("Reopen apps that were already open."),Toast.LENGTH_LONG).show();if(MiscSystem.A11Y_KEY.equals(key))AppToast.makeText(SettingsActivity.this,L10n.t("Changes apply the next time the chosen apps open."),Toast.LENGTH_LONG).show();RestartPill.changed(key); if (mRestart != null) mRestart.refresh(); return; }
 
                         mUpdating = true;
 
@@ -1982,7 +1982,7 @@ public class SettingsActivity extends Activity {
 
                         showRootBanner(true);
 
-                        AppToast.makeText(SettingsActivity.this, "Couldn't save: root access needed",
+                        AppToast.makeText(SettingsActivity.this, L10n.t("Couldn't save: root access needed"),
 
                                 Toast.LENGTH_SHORT).show();
 
@@ -2135,7 +2135,7 @@ public class SettingsActivity extends Activity {
 
         tintSwitchTrack(key,sw);
 
-        sw.setContentDescription(title);
+        sw.setContentDescription(L10n.t(title));
 
         Boolean known=sSwitchValues.get(key);
 
@@ -2185,7 +2185,7 @@ public class SettingsActivity extends Activity {
 
         });
 
-        row.setContentDescription(title);
+        row.setContentDescription(L10n.t(title));
 
         PatronUi.decorate(this,row,key);
 
@@ -2229,7 +2229,7 @@ public class SettingsActivity extends Activity {
 
         catch(android.content.ActivityNotFoundException unavailable){
 
-            AppToast.makeText(this,"Developer options aren't available on this device.",Toast.LENGTH_SHORT).show();
+            AppToast.makeText(this,L10n.t("Developer options aren't available on this device."),Toast.LENGTH_SHORT).show();
 
         }
 
@@ -2245,14 +2245,14 @@ public class SettingsActivity extends Activity {
 
             final java.util.List<String> values=Root.run("settings get secure "+StoreBlocker.KEY+"; settings get secure "+OtaBlocker.KEY+"; settings get secure "+StoreBlocker.UNLOCK_KEY);
 
-            mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(values==null||values.size()<3){mStoreBlockedCount.setText("Couldn't load apps");mOtaStatus.setText("Unavailable");initialReadDone("blocker_summary");return;}
+            mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(values==null||values.size()<3){mStoreBlockedCount.setText(L10n.t("Couldn't load apps"));mOtaStatus.setText(L10n.t("Unavailable"));initialReadDone("blocker_summary");return;}
 
                 java.util.Set<String> blocked="null".equals(values.get(0))?new java.util.HashSet<String>(java.util.Arrays.asList(StoreBlocker.CORE)):MiscOptions.parse(values.get(0));
 
                 if(!"1".equals(values.get(2)))blocked.addAll(java.util.Arrays.asList(StoreBlocker.CORE));
                 int count=0;for(String pkg:blocked)try{getPackageManager().getApplicationInfo(pkg,0);count++;}catch(Exception missing){}
 
-                mStoreBlockedCount.setText(count+" apps protected from updates");mOtaStatus.setText("1".equals(values.get(1))?"On":"Off");initialReadDone("blocker_summary");
+                mStoreBlockedCount.setText(L10n.f("%d apps protected from updates",count));mOtaStatus.setText("1".equals(values.get(1))?L10n.t("On"):L10n.t("Off"));initialReadDone("blocker_summary");
 
             }});
 
@@ -2401,7 +2401,7 @@ public class SettingsActivity extends Activity {
 
         TextView t = new TextView(this);
 
-        t.setText(SettingsText.format(s));
+        t.setText(SettingsText.format(L10n.t(s)));
 
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
 

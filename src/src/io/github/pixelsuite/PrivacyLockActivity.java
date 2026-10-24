@@ -46,7 +46,7 @@ public class PrivacyLockActivity extends Activity {
             folder = i.getStringExtra(PrivacyFolders.EXTRA_FOLDER);
             if (!PrivacyFolders.validKey(folder)) { done(false); return; }
             String n = i.getStringExtra(PrivacyFolders.EXTRA_NAME);
-            label = n == null || n.trim().isEmpty() ? "Folder" : n.length() > 60 ? n.substring(0, 60) : n;
+            label = n == null || n.trim().isEmpty() ? L10n.t("Folder") : n.length() > 60 ? n.substring(0, 60) : n;
         } else {
             if (!PrivacyLock.validPackage(pkg)) { done(false); return; }
             label = labelOf(pkg);
@@ -89,7 +89,7 @@ public class PrivacyLockActivity extends Activity {
         started = true;
         KeyguardManager km = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
         if (km == null || !km.isDeviceSecure()) {
-            AppToast.makeText(this, "Set a screen lock first to lock apps", Toast.LENGTH_LONG).show();
+            AppToast.makeText(this, L10n.t("Set a screen lock first to lock apps"), Toast.LENGTH_LONG).show();
             if (PrivacyLock.MODE_OPEN.equals(mode)) proceed();
             else if (PrivacyLock.MODE_CONFIRM.equals(mode)) success();
             else done(false);
@@ -104,19 +104,19 @@ public class PrivacyLockActivity extends Activity {
     }
 
     private String why() {
-        if (PrivacyFolders.MODE_LOCK.equals(mode)) return "Confirm it's you to lock this folder";
-        if (PrivacyFolders.MODE_UNLOCK.equals(mode)) return "Confirm it's you to unlock this folder";
-        if (PrivacyLock.MODE_LOCK.equals(mode)) return "Confirm it's you to lock this app";
-        if (PrivacyLock.MODE_UNLOCK.equals(mode)) return "Confirm it's you to unlock this app";
-        if (PrivacyGuard.MODE_REMOVE_APP.equals(mode)) return "Confirm it's you to remove this app";
-        if (PrivacyGuard.MODE_REMOVE_FOLDER.equals(mode)) return "Confirm it's you to remove this folder";
+        if (PrivacyFolders.MODE_LOCK.equals(mode)) return L10n.t("Confirm it's you to lock this folder");
+        if (PrivacyFolders.MODE_UNLOCK.equals(mode)) return L10n.t("Confirm it's you to unlock this folder");
+        if (PrivacyLock.MODE_LOCK.equals(mode)) return L10n.t("Confirm it's you to lock this app");
+        if (PrivacyLock.MODE_UNLOCK.equals(mode)) return L10n.t("Confirm it's you to unlock this app");
+        if (PrivacyGuard.MODE_REMOVE_APP.equals(mode)) return L10n.t("Confirm it's you to remove this app");
+        if (PrivacyGuard.MODE_REMOVE_FOLDER.equals(mode)) return L10n.t("Confirm it's you to remove this folder");
         String r = reason();
-        if (PrivacyLock.REASON_UNINSTALL.equals(r)) return "Confirm it's you to uninstall this app";
-        if (PrivacyLock.REASON_DISABLE.equals(r)) return "Confirm it's you to disable this app";
-        if (PrivacyLock.REASON_PAUSE.equals(r)) return "Confirm it's you to pause this app";
-        if (PrivacyLock.REASON_UNINSTALL_CORE.equals(r)) return PromptStyle.CORE_UNINSTALL;
-        if (PrivacyLock.REASON_DISABLE_CORE.equals(r)) return PromptStyle.CORE_DISABLE;
-        return "Please authenticate to proceed";
+        if (PrivacyLock.REASON_UNINSTALL.equals(r)) return L10n.t("Confirm it's you to uninstall this app");
+        if (PrivacyLock.REASON_DISABLE.equals(r)) return L10n.t("Confirm it's you to disable this app");
+        if (PrivacyLock.REASON_PAUSE.equals(r)) return L10n.t("Confirm it's you to pause this app");
+        if (PrivacyLock.REASON_UNINSTALL_CORE.equals(r)) return L10n.t("Confirm it's you to uninstall this core app");
+        if (PrivacyLock.REASON_DISABLE_CORE.equals(r)) return L10n.t("Confirm it's you to disable this core app");
+        return L10n.t("Please authenticate to proceed");
     }
 
     private void fingerprint() {
@@ -170,7 +170,7 @@ public class PrivacyLockActivity extends Activity {
                 @Override public void onAuthenticationError(int code, CharSequence msg) { if (mine == generation && !finished) done(false); }
             });
         } catch (Throwable error) {
-            AppToast.makeText(this, "Could not check your screen lock", Toast.LENGTH_SHORT).show();
+            AppToast.makeText(this, L10n.t("Could not check your screen lock"), Toast.LENGTH_SHORT).show();
             done(false);
         }
     }
@@ -239,7 +239,7 @@ public class PrivacyLockActivity extends Activity {
             } catch (Throwable error) { }
             final boolean saved = ok;
             main.post(new Runnable() { public void run() {
-                AppToast.makeText(PrivacyLockActivity.this, !saved ? "Could not save. Is root allowed for Pixel Suite?" : lock ? label + " is locked" : label + " is unlocked", Toast.LENGTH_SHORT).show();
+                AppToast.makeText(PrivacyLockActivity.this, !saved ? L10n.t("Could not save. Is root allowed for Pixel Suite?") : lock ? L10n.f("%s is locked", label) : L10n.f("%s is unlocked", label), Toast.LENGTH_SHORT).show();
                 done(saved);
             } });
         } }, "PixelSuiteAppLockSave").start();

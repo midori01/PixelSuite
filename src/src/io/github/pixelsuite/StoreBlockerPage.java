@@ -77,7 +77,7 @@ final class StoreBlockerPage {
             if(Build.VERSION.SDK_INT>=33)Context.class.getMethod("registerReceiver",BroadcastReceiver.class,IntentFilter.class,int.class).invoke(activity,packages,f,4);
             else activity.registerReceiver(packages,f);
             registered=true;
-        }catch(Exception failure){AppToast.makeText(activity,"Reopen this page to refresh installed apps",Toast.LENGTH_SHORT).show();}
+        }catch(Exception failure){AppToast.makeText(activity,L10n.t("Reopen this page to refresh installed apps"),Toast.LENGTH_SHORT).show();}
     }
     private void unregister(){if(registered){try{activity.unregisterReceiver(packages);}catch(Exception ignored){}registered=false;}}
     void dispose(){disposed=true;unregister();if(lockedToast!=null)lockedToast.cancel();if(discard!=null)discard.dismiss();closePanel();}
@@ -99,7 +99,7 @@ final class StoreBlockerPage {
                     if(core.contains(app.packageName)||launchable.contains(app.packageName)){
                         String name;try{name=app.loadLabel(pm).toString();}catch(Exception unavailable){name=app.packageName;}PackageInfo pkg;try{pkg=pm.getPackageInfo(app.packageName,0);}catch(PackageManager.NameNotFoundException removedDuringLoad){continue;}long code=pkg.versionCode;
                         if(Build.VERSION.SDK_INT>=28)try{code=((Number)PackageInfo.class.getMethod("getLongVersionCode").invoke(pkg)).longValue();}catch(Exception ignored){}
-                        entries.add(new Entry(app,name,pkg.versionName==null?"Unknown":pkg.versionName,code));
+                        entries.add(new Entry(app,name,pkg.versionName==null?L10n.t("Unknown"):pkg.versionName,code));
                     }
                 }
                 final Set<String> removed=new HashSet<String>();
@@ -120,7 +120,7 @@ final class StoreBlockerPage {
                     all.clear();all.addAll(entries);icons.evictAll();refresh(false);ready();
                     if(reload){reload=false;load();}
                 }});
-            }catch(Exception failure){main.post(new Runnable(){public void run(){if(live()){loading=false;count.setText("Couldn't load apps");if(status!=null)status.setText("Check root access and reopen this page.");ready();}}});}
+            }catch(Exception failure){main.post(new Runnable(){public void run(){if(live()){loading=false;count.setText(L10n.t("Couldn't load apps"));if(status!=null)status.setText(L10n.t("Check root access and reopen this page."));ready();}}});}
         }});
     }
     void unlockChanged(boolean value){if(!loaded||unlock==value)return;unlock=value;if(!unlock)selected.addAll(core);refresh(false);}
@@ -135,14 +135,14 @@ final class StoreBlockerPage {
         LinearLayout header=new LinearLayout(activity);header.setOrientation(1);header.setGravity(Gravity.CENTER_HORIZONTAL);header.setPadding(0,dp(12),0,dp(8));
         View handle=new View(activity);handle.setBackground(AppSurfaces.field(activity,3));header.addView(handle,new LinearLayout.LayoutParams(dp(36),dp(5)));
         LinearLayout titleRow=new LinearLayout(activity);titleRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title=label("Select apps",22,text);title.setPadding(dp(4),dp(12),0,dp(8));titleRow.addView(title,new LinearLayout.LayoutParams(0,-2,1));
-        TextView close=label("×",28,secondary);close.setGravity(Gravity.CENTER);AppCloseButton.style(close);close.setContentDescription("Close app selection");titleRow.addView(close,new LinearLayout.LayoutParams(dp(48),dp(48)));close.setOnClickListener(new View.OnClickListener(){public void onClick(View v){requestClose();}});header.addView(titleRow,new LinearLayout.LayoutParams(-1,-2));
+        TextView title=label(L10n.t("Select apps"),22,text);title.setPadding(dp(4),dp(12),0,dp(8));titleRow.addView(title,new LinearLayout.LayoutParams(0,-2,1));
+        TextView close=label("×",28,secondary);close.setGravity(Gravity.CENTER);AppCloseButton.style(close);close.setContentDescription(L10n.t("Close app selection"));titleRow.addView(close,new LinearLayout.LayoutParams(dp(48),dp(48)));close.setOnClickListener(new View.OnClickListener(){public void onClick(View v){requestClose();}});header.addView(titleRow,new LinearLayout.LayoutParams(-1,-2));
         final float[] down=new float[1];header.setOnTouchListener(new View.OnTouchListener(){public boolean onTouch(View v,android.view.MotionEvent e){if(e.getActionMasked()==0){down[0]=e.getRawY();return true;}if(e.getActionMasked()==1){if(e.getRawY()-down[0]>dp(64))requestClose();return true;}return true;}});
         content.addView(header,new LinearLayout.LayoutParams(-1,-2));
-        search=new EditText(activity);search.setSingleLine(true);search.setHint("Search apps");search.setContentDescription("Search installed apps");search.setTextColor(text);search.setHintTextColor(secondary);search.setBackground(new ThemeGlass(activity,24,ThemeGlass.FIELD));search.setLayerType(View.LAYER_TYPE_SOFTWARE,null);search.setPadding(dp(16),dp(10),dp(16),dp(10));content.addView(search,new LinearLayout.LayoutParams(-1,dp(48)));
-        status=label(loaded?"":"Loading apps…",12,secondary);status.setPadding(dp(4),dp(8),dp(4),dp(8));content.addView(status);
+        search=new EditText(activity);search.setSingleLine(true);search.setHint(L10n.t("Search apps"));search.setContentDescription(L10n.t("Search installed apps"));search.setTextColor(text);search.setHintTextColor(secondary);search.setBackground(new ThemeGlass(activity,24,ThemeGlass.FIELD));search.setLayerType(View.LAYER_TYPE_SOFTWARE,null);search.setPadding(dp(16),dp(10),dp(16),dp(10));content.addView(search,new LinearLayout.LayoutParams(-1,dp(48)));
+        status=label(loaded?"":L10n.t("Loading apps…"),12,secondary);status.setPadding(dp(4),dp(8),dp(4),dp(8));content.addView(status);
         list=new ListView(activity);ToastMotion.watchScroll(list);list.setDivider(null);list.setBackgroundColor(Color.TRANSPARENT);createFolder();list.addHeaderView(folder,null,false);folderAttached=true;adapter=new AppsAdapter();list.setAdapter(adapter);content.addView(list,new LinearLayout.LayoutParams(-1,0,1));
-        TextView note=label("Tick Play Store in LSPosed for Pixel Suite.",12,secondary);note.setGravity(Gravity.CENTER);note.setPadding(0,dp(8),0,dp(8));content.addView(note,new LinearLayout.LayoutParams(-1,-2));
+        TextView note=label(L10n.t("Tick Play Store in LSPosed for Pixel Suite."),12,secondary);note.setGravity(Gravity.CENTER);note.setPadding(0,dp(8),0,dp(8));content.addView(note,new LinearLayout.LayoutParams(-1,-2));
         final View footer=new View(activity);content.addView(footer,new LinearLayout.LayoutParams(-1,dp(80)));
         pill=new RestartPill(activity,root,accent,onAccent);pill.setApplyAction(new Runnable(){public void run(){apply();}});
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int c,int after){}public void afterTextChanged(Editable e){}public void onTextChanged(CharSequence s,int start,int before,int c){refresh(false);}});
@@ -154,10 +154,10 @@ final class StoreBlockerPage {
     }
     private TextView label(String value,int size,int color){TextView t=new TextView(activity);t.setText(value);t.setTextSize(size);t.setTextColor(color);return t;}
     private void requestClose(){
-        if(saving){AppToast.makeText(activity,"Wait for your changes to finish applying",Toast.LENGTH_SHORT).show();return;}
+        if(saving){AppToast.makeText(activity,L10n.t("Wait for your changes to finish applying"),Toast.LENGTH_SHORT).show();return;}
         if(!selected.equals(saved)){
             if(discard!=null&&discard.isShowing())return;
-            discard=new AlertDialog.Builder(activity).setTitle("Discard changes?").setMessage("Your app selections haven't been applied.").setNegativeButton("Keep editing",null).setPositiveButton("Discard",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int which){selected.clear();selected.addAll(saved);if(!unlock)selected.addAll(core);closePanel();}}).create();
+            discard=new AlertDialog.Builder(activity).setTitle(L10n.t("Discard changes?")).setMessage(L10n.t("Your app selections haven't been applied.")).setNegativeButton(L10n.t("Keep editing"),null).setPositiveButton(L10n.t("Discard"),new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int which){selected.clear();selected.addAll(saved);if(!unlock)selected.addAll(core);closePanel();}}).create();
             discard.show();Window w=discard.getWindow();if(w!=null)w.setBackgroundDrawable(AppSurfaces.dialog(activity,28));
             for(int which:new int[]{AlertDialog.BUTTON_POSITIVE,AlertDialog.BUTTON_NEGATIVE})discard.getButton(which).setTextColor(accent);
             int messageId=activity.getResources().getIdentifier("message","id","android");TextView message=(TextView)discard.findViewById(messageId);if(message!=null)message.setTextColor(text);
@@ -178,7 +178,7 @@ final class StoreBlockerPage {
         Comparator<Entry> byName=new Comparator<Entry>(){public int compare(Entry a,Entry b){boolean ac=core.contains(a.info.packageName),bc=core.contains(b.info.packageName);if(ac!=bc)return ac?-1:1;boolean as=selected.contains(a.info.packageName),bs=selected.contains(b.info.packageName);if(as!=bs)return as?-1:1;int n=collator.compare(a.name,b.name);return n==0?a.info.packageName.compareTo(b.info.packageName):n;}};
         Collections.sort(shown,byName);Collections.sort(blockedShown,(a,b)->{int n=collator.compare(a.name,b.name);return n==0?a.info.packageName.compareTo(b.info.packageName):n;});
         renderFolder(false);adapter.notifyDataSetChanged();
-        status.setText(protectedCount()+" apps protected from updates · "+(shown.size()+blockedShown.size())+" shown");
+        status.setText(L10n.f("%d apps protected from updates · %d shown",protectedCount(),shown.size()+blockedShown.size()));
         if(pill!=null)pill.showApply(!selected.equals(saved));
     }
     private boolean inSelectedFolder(String pkg){return core.contains(pkg);}
@@ -188,7 +188,7 @@ final class StoreBlockerPage {
         folder=new LinearLayout(activity);folder.setOrientation(1);folder.setBackground(new ThemeGlass(activity,22,ThemeGlass.PANEL));
         LinearLayout header=new LinearLayout(activity);header.setGravity(Gravity.CENTER_VERTICAL);header.setPadding(dp(10),dp(10),dp(4),dp(10));
         folderArtwork=new FolderArtwork();header.addView(folderArtwork,new LinearLayout.LayoutParams(dp(52),dp(52)));
-        LinearLayout words=new LinearLayout(activity);words.setOrientation(1);words.setPadding(dp(10),0,dp(4),0);folderTitle=label("Packages blocked",16,text);folderTitle.setTypeface(android.graphics.Typeface.create("sans-serif-medium",0));words.addView(folderTitle);
+        LinearLayout words=new LinearLayout(activity);words.setOrientation(1);words.setPadding(dp(10),0,dp(4),0);folderTitle=label(L10n.t("Packages blocked"),16,text);folderTitle.setTypeface(android.graphics.Typeface.create("sans-serif-medium",0));words.addView(folderTitle);
         folderSummary=label("",12,secondary);folderSummary.setPadding(0,dp(3),0,0);words.addView(folderSummary);header.addView(words,new LinearLayout.LayoutParams(0,-2,1));
         folderArrow=new FolderChevron();folderArrow.setBackground(new android.graphics.drawable.InsetDrawable(new ThemeGlass(activity,20,ThemeGlass.FIELD),dp(6)));folderArrow.setLayerType(View.LAYER_TYPE_SOFTWARE,null);folderArrow.setClickable(true);folderArrow.setFocusable(true);folderArrow.setOnClickListener(v->toggleFolder());header.addView(folderArrow,new LinearLayout.LayoutParams(dp(48),dp(48)));
         header.setClickable(true);header.setFocusable(true);header.setOnClickListener(v->toggleFolder());folder.addView(header,new LinearLayout.LayoutParams(-1,-2));
@@ -199,9 +199,9 @@ final class StoreBlockerPage {
         if(folder==null)return;boolean hasMatches=!blockedShown.isEmpty();
         if(!hasMatches&&folderAttached){list.removeHeaderView(folder);folderAttached=false;}
         else if(hasMatches&&!folderAttached){list.addHeaderView(folder,null,false);folderAttached=true;}
-        folder.setVisibility(hasMatches?View.VISIBLE:View.GONE);folderTitle.setText("Packages blocked");folderSummary.setText(selectedFolderCount()+" apps protected from updates");folderArtwork.invalidate();
+        folder.setVisibility(hasMatches?View.VISIBLE:View.GONE);folderTitle.setText(L10n.t("Packages blocked"));folderSummary.setText(L10n.f("%d apps protected from updates",selectedFolderCount()));folderArtwork.invalidate();
         boolean open=expanded||(search!=null&&search.length()>0);
-        folderArrow.setContentDescription(open?"Collapse blocked updates":"Expand blocked updates");
+        folderArrow.setContentDescription(open?L10n.t("Collapse blocked updates"):L10n.t("Expand blocked updates"));
         if(foldAnimator!=null){foldAnimator.cancel();foldAnimator=null;}
         int before=folderBody.getVisibility()==View.GONE?0:folderBody.getHeight();
         for(int i=0;i<blockedShown.size();i++){
@@ -244,7 +244,7 @@ final class StoreBlockerPage {
             main.postDelayed(new Runnable(){public void run(){if(!live())return;saving=false;unlockSwitch.setEnabled(true);if(ok){saved=new TreeSet<String>(next);refresh(false);if(pill!=null)pill.applied();}else if(pill!=null)pill.applyFailed();if(search!=null)search.setEnabled(true);if(adapter!=null)adapter.notifyDataSetChanged();refreshCount();if(reload){reload=false;load();}}},Math.max(0,650-(SystemClock.uptimeMillis()-start)));
         }});
     }
-    private void refreshCount(){int held=0;for(String pkg:selected)if(installedPackages.contains(pkg))held++;count.setText(held+" apps protected from updates");}
+    private void refreshCount(){int held=0;for(String pkg:selected)if(installedPackages.contains(pkg))held++;count.setText(L10n.f("%d apps protected from updates",held));}
     private final class AppsAdapter extends BaseAdapter {
         public int getCount(){return shown.size();}public Object getItem(int p){return shown.get(p);}public long getItemId(int p){return shown.get(p).info.packageName.hashCode();}
         public View getView(int pos,View reuse,ViewGroup parent){return appRow(shown.get(pos),reuse);}
@@ -259,11 +259,11 @@ final class StoreBlockerPage {
             h.name.setText(e.name);h.pkg.setText(e.info.packageName);h.check.setChecked(selected.contains(e.info.packageName));h.check.setEnabled(!saving);h.check.setAlpha(guarded?.55f:1f);
             Drawable icon=icons.get(e.info.packageName);if(icon==null)try{icon=e.info.loadIcon(activity.getPackageManager());icons.put(e.info.packageName,icon);}catch(Exception ignored){}if(icon!=null&&icon.getConstantState()!=null)icon=icon.getConstantState().newDrawable(activity.getResources()).mutate();h.icon.setImageDrawable(icon);
             row.setEnabled(!saving);row.setAlpha(1);h.name.setAlpha(enabled?1f:.55f);h.pkg.setAlpha(enabled?1f:.65f);h.icon.setAlpha(enabled?1f:.55f);h.info.setEnabled(!saving);
-            h.info.setContentDescription("Installed version of "+e.name);h.info.setOnClickListener(v->{if(versionHint!=null)versionHint.show("**"+e.name+"**\nVersion "+e.version+"\nBuild "+e.code+"\n"+e.info.packageName,panel.getWindow().getDecorView());});row.setContentDescription(e.name+", "+e.info.packageName+(h.check.isChecked()?", updates blocked":"")+(guarded?", core app locked. Tap to learn why":""));
+            h.info.setContentDescription(L10n.f("Installed version of %s",e.name));h.info.setOnClickListener(v->{if(versionHint!=null)versionHint.show(L10n.f("**%s**\nVersion %s\nBuild %d\n%s",e.name,e.version,e.code,e.info.packageName),panel.getWindow().getDecorView());});row.setContentDescription(L10n.f("%s, %s%s%s",e.name,e.info.packageName,h.check.isChecked()?L10n.t(", updates blocked"):"",guarded?L10n.t(", core app locked. Tap to learn why"):""));
             final Holder holder=h;h.check.setClickable(true);h.check.setOnClickListener(v->row.performClick());row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){
                 if(saving)return;
-                if(!unlock&&core.contains(e.info.packageName)){holder.check.setChecked(selected.contains(e.info.packageName));showCoreWarning("Turn on Unlock OEM apps to uncheck this app. Updating it may break Pixel Suite support.");return;}
-                if(core.contains(e.info.packageName)&&selected.contains(e.info.packageName))showCoreWarning("Updating this core app may break Pixel Suite support.");
+                if(!unlock&&core.contains(e.info.packageName)){holder.check.setChecked(selected.contains(e.info.packageName));showCoreWarning(L10n.t("Turn on Unlock OEM apps to uncheck this app. Updating it may break Pixel Suite support."));return;}
+                if(core.contains(e.info.packageName)&&selected.contains(e.info.packageName))showCoreWarning(L10n.t("Updating this core app may break Pixel Suite support."));
                 if(selected.add(e.info.packageName))checkedOrder.put(e.info.packageName,++order);else{selected.remove(e.info.packageName);checkedOrder.remove(e.info.packageName);}refresh(true);
             }});return row;
     }

@@ -16,14 +16,14 @@ final class UpdateInstaller {
     static File apk(Context c){return new File(new File(c.getCacheDir(),"release-update"),"verified.apk");}
     private static void progress(final Progress callback,final String text,final int percent){new Handler(Looper.getMainLooper()).post(new Runnable(){public void run(){callback.show(text,percent);}});}
     static void start(final Activity activity,final Progress callback){
-        if(!busy.compareAndSet(false,true)){progress(callback,"An update download is already running.",-1);return;}
+        if(!busy.compareAndSet(false,true)){progress(callback,L10n.t("An update download is already running."),-1);return;}
         final Context c=activity.getApplicationContext();
         new Thread(new Runnable(){public void run(){
             File partial=new File(apk(c).getParentFile(),"download.part");
             try{
-                progress(callback,"Verifying the official releases…",-1);
+                progress(callback,L10n.t("Verifying the official releases…"),-1);
                 ReleaseGate.Release release=ReleaseUpdates.availableRelease(c);
-                if(release==null){progress(callback,"No newer verified release is available on both repositories.",-1);return;}
+                if(release==null){progress(callback,L10n.t("No newer verified release is available on both repositories."),-1);return;}
                 if(release.size>ApkDownloadPolicy.MAX)throw new IOException("APK exceeds download limit");
                 File target=apk(c);target.getParentFile().mkdirs();
                 if(!valid(c,target,release)){
@@ -31,20 +31,20 @@ final class UpdateInstaller {
                     HttpURLConnection connection=connect(url);
                     try(InputStream in=connection.getInputStream();FileOutputStream out=new FileOutputStream(partial)){
                         byte[] bytes=new byte[32768];long read=0;int n,last=-1;
-                        while((n=in.read(bytes))!=-1){read+=n;if(read>release.size)throw new IOException("Unexpected APK size");out.write(bytes,0,n);int percent=(int)(read*100/release.size);if(percent!=last){last=percent;progress(callback,"Downloading Pixel Suite "+release.version+" — "+percent+"%",percent);}}
+                        while((n=in.read(bytes))!=-1){read+=n;if(read>release.size)throw new IOException("Unexpected APK size");out.write(bytes,0,n);int percent=(int)(read*100/release.size);if(percent!=last){last=percent;progress(callback,L10n.f("Downloading Pixel Suite %s — %d%%",release.version,percent),percent);}}
                         if(read!=release.size)throw new IOException("Incomplete APK");
                     }finally{connection.disconnect();}
-                    progress(callback,"Checking APK hash and signing certificate…",100);
+                    progress(callback,L10n.t("Checking APK hash and signing certificate…"),100);
                     if(!valid(c,partial,release))throw new IOException("APK verification failed");
                     if(target.exists()&&!target.delete())throw new IOException("Cannot replace cached APK");
                     if(!partial.renameTo(target))throw new IOException("Cannot prepare APK");
                 }
-                progress(callback,"Verified. Opening Android installer…",100);
+                progress(callback,L10n.t("Verified. Opening Android installer…"),100);
                 new Handler(Looper.getMainLooper()).post(new Runnable(){public void run(){
-                    if(activity.isDestroyed()||activity.isFinishing()){callback.show("Download complete. Open Updates and tap Download and install to continue.",100);return;}
-                    try{launch(activity);}catch(Exception error){callback.show("Could not open Android installer. Try Download and install again.",-1);}
+                    if(activity.isDestroyed()||activity.isFinishing()){callback.show(L10n.t("Download complete. Open Updates and tap Download and install to continue."),100);return;}
+                    try{launch(activity);}catch(Exception error){callback.show(L10n.t("Could not open Android installer. Try Download and install again."),-1);}
                 }});
-            }catch(Exception failed){progress(callback,"Update could not be downloaded or verified. Check your connection and try again.",-1);}
+            }catch(Exception failed){progress(callback,L10n.t("Update could not be downloaded or verified. Check your connection and try again."),-1);}
             finally{if(partial.exists())partial.delete();busy.set(false);}
         }},"PixelSuite-update-download").start();
     }

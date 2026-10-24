@@ -62,7 +62,8 @@ final class PromptStyle {
         if (!named && !marked) return false;
         if (!(desc instanceof TextView)) return false;
         CharSequence d = ((TextView) desc).getText();
-        for (String s : OURS) if (s.contentEquals(d)) return true;
+        // Pixel Suite sets these in English or, in Japanese, as their L10n translation (System UI's language may differ).
+        for (String s : OURS) { String ja = JapaneseText.get(s); if (s.contentEquals(d) || (ja != null && ja.contentEquals(d))) return true; }
         return false;
     }
 
@@ -106,12 +107,14 @@ final class PromptStyle {
         if (Math.abs(pin.getTranslationY() - ty) > 0.5f) pin.setTranslationY(ty);
         pin.setVisibility(original.getVisibility());
         View desc = find(root, "description");
-        boolean core = desc instanceof TextView && (CORE_UNINSTALL.contentEquals(((TextView) desc).getText()) || CORE_DISABLE.contentEquals(((TextView) desc).getText()));
+        CharSequence dt = desc instanceof TextView ? ((TextView) desc).getText() : null;
+        String jaUninstall = JapaneseText.get(CORE_UNINSTALL), jaDisable = JapaneseText.get(CORE_DISABLE);
+        boolean core = dt != null && (CORE_UNINSTALL.contentEquals(dt) || CORE_DISABLE.contentEquals(dt) || (jaUninstall != null && jaUninstall.contentEquals(dt)) || (jaDisable != null && jaDisable.contentEquals(dt)));
         TextView note = (TextView) panel.findViewWithTag("pixelsuite_core_warning");
         if (core && note == null) {
             note = new TextView(root.getContext());
             note.setTag("pixelsuite_core_warning");
-            note.setText(WARNING);
+            note.setText(L10n.t(WARNING));
             note.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             note.setGravity(Gravity.CENTER);
             if (desc instanceof TextView) note.setTextColor(((TextView) desc).getCurrentTextColor());

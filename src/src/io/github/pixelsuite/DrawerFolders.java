@@ -1032,7 +1032,7 @@ final class DrawerFolders {
                 for(LauncherData.Folder f:folders){f.apps.remove(source.key);if(f.id==destination.id)f.apps.add(source.key);}
             }else{
                 if(!targetKey.startsWith(user+"|"))return false;
-                LauncherData.Folder f=new LauncherData.Folder();f.id=nextId(folders);f.name="Folder";f.grid=LauncherFeatures.defaultDrawerGrid();f.user=user;f.apps.add(targetKey);f.apps.add(source.key);
+                LauncherData.Folder f=new LauncherData.Folder();f.id=nextId(folders);f.name=L10n.t("Folder");f.grid=LauncherFeatures.defaultDrawerGrid();f.user=user;f.apps.add(targetKey);f.apps.add(source.key);
                 for(LauncherData.Folder old:folders){old.apps.remove(source.key);old.apps.remove(targetKey);}folders.add(f);animateId=f.id;
             }
             for(int i=folders.size()-1;i>=0;i--)if(folders.get(i).apps.isEmpty())folders.remove(i);
@@ -1051,7 +1051,7 @@ final class DrawerFolders {
     static int nextId(List<LauncherData.Folder> list){int id=1;for(LauncherData.Folder f:list)id=Math.max(id,f.id+1);if(id>=16000)throw new IllegalStateException("Folder limit reached");return id;}
     static void create(Object app){
         String key=LauncherFeatures.identity(app);if(key==null)return;
-        LauncherData.Folder f=new LauncherData.Folder();f.id=nextId(LauncherFeatures.data.folders());f.name="Folder";f.grid=LauncherFeatures.defaultDrawerGrid();
+        LauncherData.Folder f=new LauncherData.Folder();f.id=nextId(LauncherFeatures.data.folders());f.name=L10n.t("Folder");f.grid=LauncherFeatures.defaultDrawerGrid();
         f.user=Long.parseLong(key.substring(0,key.indexOf('|')));f.apps.add(key);choose(f,true);
     }
     static void chooseApps(Object info){LauncherData.Folder f=record(info);if(f!=null)choose(f,false);}
@@ -1063,7 +1063,7 @@ final class DrawerFolders {
             boolean assigned=false;for(LauncherData.Folder other:folders)if(other.id!=f.id&&other.apps.contains(key))assigned=true;
             if(!assigned){offered.add(app);known.put(key,app);}
         }
-        AppPicker.show(a,creating?"Create folder":"Add apps",offered,new java.util.HashSet<String>(f.apps),2,new AppPicker.Save(){public boolean save(List<String> chosen){
+        AppPicker.show(a,creating?L10n.t("Create folder"):L10n.t("Add apps"),offered,new java.util.HashSet<String>(f.apps),2,new AppPicker.Save(){public boolean save(List<String> chosen){
             List<String> next=new ArrayList<String>();
             for(String key:f.apps)if(chosen.contains(key))next.add(key);
             for(String key:chosen)if(!next.contains(key))next.add(key);

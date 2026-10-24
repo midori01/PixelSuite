@@ -51,7 +51,7 @@ final class PhotosTabs {
             protected void beforeHookedMethod(Xp.Param p) {
                 if (p.args.length == 0 || !(p.args[0] instanceof Integer)) return;
                 int id = (Integer) p.args[0];
-                if (id == fakeLabel) { p.setResult("Doodles"); return; }
+                if (id == fakeLabel) { p.setResult(L10n.t("Doodles")); return; }
                 if (id == anchor) { bodyRan = true; discover(); }
             }
         };

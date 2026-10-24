@@ -78,13 +78,13 @@ final class AppPicker {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(a, 22), dp(a, 22)); lp.leftMargin = dp(a, 16); lp.rightMargin = dp(a, 10);
         pill.addView(lens, lp);
         final EditText field = new EditText(a);
-        field.setBackground(null); field.setSingleLine(true); field.setHint("Search apps"); field.setTextSize(16);
+        field.setBackground(null); field.setSingleLine(true); field.setHint(L10n.t("Search apps")); field.setTextSize(16);
         field.setTextColor(ink); field.setHintTextColor((ink & 0xffffff) | 0x8c000000);
         field.setImeOptions(EditorInfo.IME_ACTION_SEARCH | EditorInfo.IME_FLAG_NO_EXTRACT_UI); field.setPadding(0, 0, 0, 0);
         MenuFont.apply(field);
         pill.addView(field, new LinearLayout.LayoutParams(0, -1, 1f));
         final ImageView clear = new ImageView(a); LauncherGlyph clearGlyph = new LauncherGlyph(a, 12); clearGlyph.setTintList(ColorStateList.valueOf(ink)); clear.setImageDrawable(clearGlyph);
-        clear.setPadding(dp(a, 12), dp(a, 12), dp(a, 12), dp(a, 12)); clear.setContentDescription("Clear search"); clear.setVisibility(View.GONE);
+        clear.setPadding(dp(a, 12), dp(a, 12), dp(a, 12), dp(a, 12)); clear.setContentDescription(L10n.t("Clear search")); clear.setVisibility(View.GONE);
         pill.addView(clear, new LinearLayout.LayoutParams(dp(a, 44), dp(a, 44)));
         LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(-1, dp(a, 52));
         pp.leftMargin = pp.rightMargin = dp(a, 20); pp.bottomMargin = dp(a, 8);
@@ -114,10 +114,10 @@ final class AppPicker {
         list.setAdapter(adapter);
 
         final AlertDialog dialog = new AlertDialog.Builder(a).setTitle(title).setView(root)
-                .setNegativeButton("Cancel", null).setPositiveButton("Save", null).create();
+                .setNegativeButton(L10n.t("Cancel"), null).setPositiveButton(L10n.t("Save"), null).create();
         final Runnable count = new Runnable() { public void run() {
             int n = 0; for (Entry e : all) if (e.on) n++;
-            dialog.setTitle(n == 0 ? title : title + "  ·  " + n + " selected");
+            dialog.setTitle(n == 0 ? title : L10n.f("%s  ·  %d selected", title, n));
         }};
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> p, View v, int i, long id) {
@@ -132,7 +132,7 @@ final class AppPicker {
                 clear.setVisibility(q.length() == 0 ? View.GONE : View.VISIBLE);
                 shown.clear();
                 for (Entry e : all) if (q.length() == 0 || e.match.contains(q)) shown.add(e);
-                empty.setText(q.length() == 0 ? "" : "No apps match “" + s.toString().trim() + "”");
+                empty.setText(q.length() == 0 ? "" : L10n.f("No apps match “%s”", s.toString().trim()));
                 adapter.notifyDataSetChanged(); list.setSelection(0);
             }
         });
@@ -152,9 +152,9 @@ final class AppPicker {
             public void onClick(View v) {
                 List<String> chosen = new ArrayList<String>();
                 for (Entry e : all) if (e.on) chosen.add(e.key);
-                if (chosen.size() < minimum) { Toast.makeText(a, "Select at least " + minimum + " apps for a folder", Toast.LENGTH_SHORT).show(); return; }
+                if (chosen.size() < minimum) { Toast.makeText(a, L10n.f("Select at least %d apps for a folder", minimum), Toast.LENGTH_SHORT).show(); return; }
                 if (save.save(chosen)) { keyboard(field, false); dialog.dismiss(); }
-                else Toast.makeText(a, "Could not save the folder", Toast.LENGTH_SHORT).show();
+                else Toast.makeText(a, L10n.t("Could not save the folder"), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -172,7 +172,7 @@ final class AppPicker {
             check = new CheckBox(c); check.setClickable(false); check.setFocusable(false); addView(check, new LayoutParams(-2, -2));
         }
         void bind(Entry e) {
-            name.setText(e.name); check.setChecked(e.on); setContentDescription(e.name + (e.on ? ", selected" : ""));
+            name.setText(e.name); check.setChecked(e.on); setContentDescription(e.on ? L10n.f("%s, selected", e.name) : e.name);
             icon.setImageDrawable(iconOf(e.app, getContext()));
         }
     }

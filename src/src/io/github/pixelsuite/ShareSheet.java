@@ -486,7 +486,7 @@ final class ShareSheet {
                                 Drawable ic = icon(c, o);
                                 items.add(new Pair<Object, Object>(ic == null ? null : new NoTint(copy(c, ic)), shortcutName(c, o)));
                             }
-                            items.add(new Pair<Object, Object>(new Glyph(Glyph.EYE_OFF, Color.BLACK, ((View) p.getResult()).getResources()), "Hide app"));
+                            items.add(new Pair<Object, Object>(new Glyph(Glyph.EYE_OFF, Color.BLACK, ((View) p.getResult()).getResources()), L10n.t("Hide app")));
                             Xp.setObjectField(ad0, "mItems", items);
                             Xp.setAdditionalInstanceField(p.thisObject, F_MULTI, Boolean.TRUE);
                             try { Xp.callMethod(ad0, "notifyDataSetChanged"); } catch (Throwable ignored) { }
@@ -505,7 +505,7 @@ final class ShareSheet {
                     Object ad = Xp.getObjectField(rv, "mAdapter");
                     if (ad == null) return;
                     List<Object> items = new ArrayList<>((List<?>) Xp.getObjectField(ad, "mItems"));
-                    items.add(new Pair<Object, Object>(new Glyph(Glyph.EYE_OFF, Color.BLACK, ((View) p.getResult()).getResources()), contact ? "Hide contact" : "Hide app"));
+                    items.add(new Pair<Object, Object>(new Glyph(Glyph.EYE_OFF, Color.BLACK, ((View) p.getResult()).getResources()), contact ? L10n.t("Hide contact") : L10n.t("Hide app")));
                     Xp.setObjectField(ad, "mItems", items);
                 }
             });
@@ -2583,7 +2583,7 @@ final class ShareSheet {
         Xp.setAdditionalInstanceField(v, F_GRID, grid);
         Object la = Xp.getObjectField(grid, "mChooserListAdapter");
         List<Object> hidden = type == CFOLDER_TYPE ? cstash(la) : stash(la);
-        String name = type == CFOLDER_TYPE ? "Hidden contacts" : "Hidden apps";
+        String name = type == CFOLDER_TYPE ? L10n.t("Hidden contacts") : L10n.t("Hidden apps");
         ImageView icon = (ImageView) Xp.getObjectField(vh, "icon");
         TextView text = (TextView) Xp.getObjectField(vh, "text");
         TextView text2 = (TextView) Xp.getObjectField(vh, "text2");
@@ -2597,7 +2597,7 @@ final class ShareSheet {
         text.setBackground(null);
         text.setPaddingRelative(0, 0, 0, 0);
         if (text2 != null) { text2.setText(""); text2.setVisibility(View.GONE); }
-        v.setContentDescription(name + ", " + hidden.size());
+        v.setContentDescription(L10n.f("%s, %d",name,hidden.size()));
         v.setEnabled(true);
         v.setAlpha(sSelecting ? 0.35f : 1f);
         v.setScaleX(1f); v.setScaleY(1f);
@@ -2742,15 +2742,15 @@ final class ShareSheet {
         LinearLayout texts = new LinearLayout(a);
         texts.setOrientation(LinearLayout.VERTICAL);
         TextView title = new TextView(a);
-        title.setText(contacts ? "Hidden contacts" : "Hidden apps"); title.setTextColor(th.text); title.setTextSize(20); title.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        title.setText(contacts ? L10n.t("Hidden contacts") : L10n.t("Hidden apps")); title.setTextColor(th.text); title.setTextSize(20); title.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
         texts.addView(title);
         final TextView sub = new TextView(a);
-        sub.setText("Tap to share. Long-press to unhide."); sub.setTextColor(th.text2); sub.setTextSize(13);
+        sub.setText(L10n.t("Tap to share. Long-press to unhide.")); sub.setTextColor(th.text2); sub.setTextSize(13);
         sub.setPadding(0, dp(a, 2), 0, dp(a, 14));
         texts.addView(sub);
         header.addView(texts, new LinearLayout.LayoutParams(0, -2, 1f));
         final EditBubble edit = new EditBubble(a, th);
-        edit.setContentDescription(contacts ? "Edit: select hidden contacts to unhide" : "Edit: select hidden apps to unhide");
+        edit.setContentDescription(contacts ? L10n.t("Edit: select hidden contacts to unhide") : L10n.t("Edit: select hidden apps to unhide"));
         LinearLayout.LayoutParams elp = new LinearLayout.LayoutParams(edit.wantWidth(), EditBubble.wantHeight(a));
         elp.leftMargin = dp(a, 8);
         header.addView(edit, elp);
@@ -2783,8 +2783,9 @@ final class ShareSheet {
         final Runnable updatePill = () -> {
             int n = picked.size();
             boolean show = selecting[0] && n > 0;
-            String what = contacts ? (n == 1 ? "contact" : "contacts") : (n == 1 ? "app" : "apps");
-            if (n > 0) unhidePill.setText("Unhide " + n + " " + what);
+            if (n > 0) unhidePill.setText(contacts
+                    ? L10n.f(n == 1 ? "Unhide %d contact" : "Unhide %d contacts",n)
+                    : L10n.f(n == 1 ? "Unhide %d app" : "Unhide %d apps",n));
             if (show && unhidePill.getVisibility() != View.VISIBLE) {
                 unhidePill.setVisibility(View.VISIBLE); unhidePill.setAlpha(0f); unhidePill.setScaleX(0.9f); unhidePill.setScaleY(0.9f);
                 unhidePill.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(220).setInterpolator(new OvershootInterpolator(1.4f)).start();
@@ -2816,7 +2817,7 @@ final class ShareSheet {
             }
         };
         final Runnable setMode = () -> {
-            sub.setText(selecting[0] ? (contacts ? "Tick contacts to unhide." : "Tick apps to unhide.") : "Tap to share. Long-press to unhide.");
+            sub.setText(selecting[0] ? (contacts ? L10n.t("Tick contacts to unhide.") : L10n.t("Tick apps to unhide.")) : L10n.t("Tap to share. Long-press to unhide."));
             refreshChecks.run();
             updatePill.run();
         };
@@ -2886,7 +2887,7 @@ final class ShareSheet {
                 cell.setOnLongClickListener(x -> {
                     if (selecting[0]) return true;
                     Haptics.tick(a);
-                    showUnhide(a, th, cell, contacts ? "Unhide contact" : "Unhide app", () -> {
+                    showUnhide(a, th, cell, contacts ? L10n.t("Unhide contact") : L10n.t("Unhide app"), () -> {
                         if (contacts) unhideContact(a, dri); else for (Object m : members(groups, dri)) unhide(a, m);
                         items.remove(dri);
                         final boolean last = items.isEmpty();
@@ -2987,7 +2988,7 @@ final class ShareSheet {
         } catch (Throwable ignored) { }
     }
 
-    private static void showUnhide(Activity a, Th th, View anchor, final Runnable action) { showUnhide(a, th, anchor, "Unhide app", action); }
+    private static void showUnhide(Activity a, Th th, View anchor, final Runnable action) { showUnhide(a, th, anchor, L10n.t("Unhide app"), action); }
 
     private static void showUnhide(Activity a, Th th, View anchor, String unhideLabel, final Runnable action) {
         LinearLayout pill = new LinearLayout(a);
@@ -3321,7 +3322,7 @@ final class ShareSheet {
             decor.addView(layer, new FrameLayout.LayoutParams(-1, -1));
             layer.setTranslationZ(dp(a, 16));
             pin = eb;
-            pin.setContentDescription("Edit: select apps to hide");
+            pin.setContentDescription(L10n.t("Edit: select apps to hide"));
             pin.setOnClickListener(v -> setSelecting(act, !sSelecting));
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(size, bh, Gravity.TOP | Gravity.START);
             layer.addView(pin, lp);
@@ -3341,10 +3342,10 @@ final class ShareSheet {
             pill.setVisibility(View.INVISIBLE);
             rs = dp(a, 30);
             minus = new EditBubble(a, th, 1);
-            minus.setContentDescription("Hide the contacts row");
+            minus.setContentDescription(L10n.t("Hide the contacts row"));
             minus.setOnClickListener(v -> { if (!busy) collapseContacts(this); });
             plus = new EditBubble(a, th, 2);
-            plus.setContentDescription("Show the contacts row");
+            plus.setContentDescription(L10n.t("Show the contacts row"));
             plus.setOnClickListener(v -> { if (!busy) expandContacts(this); });
             for (EditBubble b : new EditBubble[]{minus, plus}) {
                 if (!th.superDark && !th.blur) b.setElevation(dp(a, 1));
@@ -3387,7 +3388,7 @@ final class ShareSheet {
         void update() {
             int n = sSel.size();
             boolean show = sSelecting && n > 0;
-            if (n > 0) pill.setText(n == 1 ? "Hide 1 app" : "Hide " + n + " apps");
+            if (n > 0) pill.setText(n == 1 ? L10n.t("Hide 1 app") : L10n.f("Hide %d apps",n));
             if (show != pillShown) {
                 pillShown = show;
                 pill.animate().cancel();
@@ -3511,7 +3512,7 @@ final class ShareSheet {
             setBackground(new RippleDrawable(ColorStateList.valueOf(th.ripple), null, new Surface(th, 10000, Color.WHITE, false)));
             if (th.superDark && th.rims) setLayerType(LAYER_TYPE_SOFTWARE, null);
         }
-        int wantWidth() { return Math.round(12 * d + 4 * d + 8 * d + Math.max(ink.measureText("Edit"), ink.measureText("Done")) + 14 * d); }
+        int wantWidth() { return Math.round(12 * d + 4 * d + 8 * d + Math.max(ink.measureText(L10n.t("Edit")), ink.measureText(L10n.t("Done"))) + 14 * d); }
         static int wantHeight(Context c) { return dp(c, 34); }
         void setActive(boolean on) {
             ValueAnimator va = ValueAnimator.ofFloat(act, on ? 1f : 0f).setDuration(220);
@@ -3556,8 +3557,8 @@ final class ShareSheet {
             float dx = 12 * d + 2 * d, dr = 1.9f * d, gap = 5.2f * d, cy = h / 2f;
             for (int i = -1; i <= 1; i++) c.drawCircle(dx, cy + i * gap, dr, ink);
             float tx = dx + 2 * d + 8 * d, ty = cy - (ink.descent() + ink.ascent()) / 2f;
-            ink.setAlpha((int) (255 * (1f - act))); c.drawText("Edit", tx, ty, ink);
-            ink.setAlpha((int) (255 * act)); c.drawText("Done", tx, ty, ink);
+            ink.setAlpha((int) (255 * (1f - act))); c.drawText(L10n.t("Edit"), tx, ty, ink);
+            ink.setAlpha((int) (255 * act)); c.drawText(L10n.t("Done"), tx, ty, ink);
             ink.setAlpha(255);
         }
     }

@@ -26,9 +26,9 @@ final class ReleaseUpdates {
     }
     static void check(final Context context,final boolean manual,final Result callback){
         final Context c=context.getApplicationContext();
-        if(!manual&&!enabled(c)){reply(callback,"Automatic update checks are off.");return;}
+        if(!manual&&!enabled(c)){reply(callback,L10n.t("Automatic update checks are off."));return;}
         if(!manual&&System.currentTimeMillis()-prefs(c).getLong("attempt",0)<6*60*60*1000L){reply(callback,status(c));return;}
-        if(!busy.compareAndSet(false,true)){reply(callback,"An update check is already running.");return;}
+        if(!busy.compareAndSet(false,true)){reply(callback,L10n.t("An update check is already running."));return;}
         new Thread(new Runnable(){public void run(){
             String message;
             try{
@@ -36,17 +36,17 @@ final class ReleaseUpdates {
                 PackageInfo local=c.getPackageManager().getPackageInfo(c.getPackageName(),0);
                 ReleaseGate.Release release=ReleaseGate.candidate(fetch("RovianDev/PixelSuite",false),fetch("Xposed-Modules-Repo/io.github.roviandev.pixelsuite",true),local.versionName,local.versionCode);
                 String available=release==null?"":release.version;
-                message=release==null?"No newer official release is published with matching APKs on both repositories.":"Pixel Suite "+available+" is available on GitHub and Xposed.";
+                message=release==null?L10n.t("No newer official release is published with matching APKs on both repositories."):L10n.f("Pixel Suite %s is available on GitHub and Xposed.", available);
                 prefs(c).edit().putString("available",available).putString("status",message).putLong("checked",System.currentTimeMillis()).apply();
                 if(release==null)((NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTICE);
                 else if(enabled(c)&&!available.equals(prefs(c).getString("notified",""))&&notifyUpdate(c,available))prefs(c).edit().putString("notified",available).apply();
-            }catch(Exception error){message="Could not verify both release repositories. Try again later.";}
+            }catch(Exception error){message=L10n.t("Could not verify both release repositories. Try again later.");}
             finally{busy.set(false);}
             reply(callback,message);
         }},"PixelSuite-release-check").start();
     }
     static ReleaseGate.Release availableRelease(Context c)throws Exception {PackageInfo local=c.getPackageManager().getPackageInfo(c.getPackageName(),0);return ReleaseGate.candidate(fetch("RovianDev/PixelSuite",false),fetch("Xposed-Modules-Repo/io.github.roviandev.pixelsuite",true),local.versionName,local.versionCode);}
-    static String status(Context c){return prefs(c).getString("status","No release check yet.");}
+    static String status(Context c){return prefs(c).getString("status",L10n.t("No release check yet."));}
     static void reply(final Result callback,final String message){if(callback!=null)new Handler(Looper.getMainLooper()).post(new Runnable(){public void run(){callback.done(message);}});}
     private static List<ReleaseGate.Release> fetch(String repo,boolean xposed)throws Exception{
         HttpURLConnection connection=(HttpURLConnection)new URL("https://api.github.com/repos/"+repo+"/releases?per_page=30").openConnection();
@@ -81,10 +81,10 @@ final class ReleaseUpdates {
             if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=0)return false;
             NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);if(manager==null)return false;
             if(Build.VERSION.SDK_INT>=24&&!((Boolean)manager.getClass().getMethod("areNotificationsEnabled").invoke(manager)))return false;
-            if(Build.VERSION.SDK_INT>=26){Class<?> channel=Class.forName("android.app.NotificationChannel");Object ch=channel.getConstructor(String.class,CharSequence.class,int.class).newInstance(CHANNEL,"Pixel Suite updates",3);manager.getClass().getMethod("createNotificationChannel",channel).invoke(manager,ch);Object existing=manager.getClass().getMethod("getNotificationChannel",String.class).invoke(manager,CHANNEL);if(existing!=null&&((Number)channel.getMethod("getImportance").invoke(existing)).intValue()==0)return false;}
+            if(Build.VERSION.SDK_INT>=26){Class<?> channel=Class.forName("android.app.NotificationChannel");Object ch=channel.getConstructor(String.class,CharSequence.class,int.class).newInstance(CHANNEL,L10n.t("Pixel Suite updates"),3);manager.getClass().getMethod("createNotificationChannel",channel).invoke(manager,ch);Object existing=manager.getClass().getMethod("getNotificationChannel",String.class).invoke(manager,CHANNEL);if(existing!=null&&((Number)channel.getMethod("getImportance").invoke(existing)).intValue()==0)return false;}
             Intent intent=new Intent(c,SettingsActivity.class).putExtra("page","updates");
             PendingIntent open=PendingIntent.getActivity(c,NOTICE,intent,PendingIntent.FLAG_UPDATE_CURRENT|0x04000000);
-            Notification.Builder builder=new Notification.Builder(c).setSmallIcon(c.getResources().getIdentifier("ic_ps_update","drawable",c.getPackageName())).setContentTitle("Pixel Suite "+version+" is available").setContentText("Official release verified on GitHub and Xposed. Tap to download and install in Pixel Suite.").setContentIntent(open).setAutoCancel(true);
+            Notification.Builder builder=new Notification.Builder(c).setSmallIcon(c.getResources().getIdentifier("ic_ps_update","drawable",c.getPackageName())).setContentTitle(L10n.f("Pixel Suite %s is available", version)).setContentText(L10n.t("Official release verified on GitHub and Xposed. Tap to download and install in Pixel Suite.")).setContentIntent(open).setAutoCancel(true);
             if(Build.VERSION.SDK_INT>=26)builder.getClass().getMethod("setChannelId",String.class).invoke(builder,CHANNEL);
             manager.notify(NOTICE,builder.build());return true;
         }catch(Exception denied){return false;}

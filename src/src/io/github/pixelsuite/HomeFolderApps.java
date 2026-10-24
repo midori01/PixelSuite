@@ -19,7 +19,7 @@ final class HomeFolderApps {
         final List<Object> apps = LauncherFeatures.apps();
         final Set<String> offered=new HashSet<String>();
         for(Object app:apps){String key=LauncherFeatures.identity(app);if(key!=null)offered.add(key);}
-        AppPicker.show(a, "Add apps", apps, inFolder, 2, new AppPicker.Save() {
+        AppPicker.show(a, L10n.t("Add apps"), apps, inFolder, 2, new AppPicker.Save() {
             public boolean save(List<String> chosen) {
                 List<Object> now = new ArrayList<Object>((List<?>) LauncherFeatures.get(info, "contents"));
                 int others = 0; Set<String> present = new HashSet<String>();

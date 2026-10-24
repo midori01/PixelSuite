@@ -73,7 +73,7 @@ public final class WatchCell {
         String want = p.getString("want", null);
         if (want == null || p.getBoolean("done", false)) return;
         if (c.checkSelfPermission("android.permission.BLUETOOTH_CONNECT") != PackageManager.PERMISSION_GRANTED) {
-            note(c, "Allow Nearby devices for Pixel Suite so Do Not Annoy can switch your watch's mobile network.", true);
+            note(c, L10n.t("Allow Nearby devices for Pixel Suite so Do Not Annoy can switch your watch's mobile network."), true);
             return;
         }
         BluetoothAdapter a = BluetoothAdapter.getDefaultAdapter();
@@ -88,7 +88,7 @@ public final class WatchCell {
                     return;
                 }
                 if (reply != null && reply.startsWith("ERR permission")) {
-                    note(c, "Pixel Suite on your watch needs its one-time permission (the adb command) to switch the mobile network.", false);
+                    note(c, L10n.t("Pixel Suite on your watch needs its one-time permission (the adb command) to switch the mobile network."), false);
                     return;
                 }
             }
@@ -98,7 +98,7 @@ public final class WatchCell {
     }
 
     private static String failText(String want) {
-        return "Couldn't reach your watch. Its mobile network will be turned " + want + " when it reconnects.";
+        return "off".equals(want) ? L10n.t("Couldn't reach your watch. Its mobile network will be turned off when it reconnects.") : L10n.t("Couldn't reach your watch. Its mobile network will be turned on when it reconnects.");
     }
 
     private static List<BluetoothDevice> watches(BluetoothAdapter a, String last) {
@@ -141,17 +141,17 @@ public final class WatchCell {
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
             Class<?> chType = Class.forName("android.app.NotificationChannel");
             if (NotificationManager.class.getMethod("getNotificationChannel", String.class).invoke(nm, CHANNEL) == null) {
-                Object ch = chType.getConstructor(String.class, CharSequence.class, int.class).newInstance(CHANNEL, "Do Not Annoy: watch", 2 );
+                Object ch = chType.getConstructor(String.class, CharSequence.class, int.class).newInstance(CHANNEL, L10n.t("Do Not Annoy: watch"), 2 );
                 NotificationManager.class.getMethod("createNotificationChannel", chType).invoke(nm, ch);
             }
             Notification.Builder b = new Notification.Builder(c);
             Notification.Builder.class.getMethod("setChannelId", String.class).invoke(b, CHANNEL);
             int small = c.getResources().getIdentifier("ic_ps_do_not_annoy", "drawable", c.getPackageName());
             b.setSmallIcon(small != 0 ? small : c.getApplicationInfo().icon)
-                    .setContentTitle("Do Not Annoy")
+                    .setContentTitle(L10n.t("Do Not Annoy"))
                     .setContentText(text)
                     .setStyle(new Notification.BigTextStyle().bigText(text))
-                    .setSubText("Watch")
+                    .setSubText(L10n.t("Watch"))
                     .setAutoCancel(true);
             if (openSettings) {
                 Intent i = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS", Uri.fromParts("package", c.getPackageName(), null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

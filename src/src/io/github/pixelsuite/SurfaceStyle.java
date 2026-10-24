@@ -8,7 +8,7 @@ final class SurfaceStyle {
 
     static final String KEY = "pixelsuite_surface_style";
     static final int OFF = 0, STOCK = 1, FROSTED = 2;
-    static final String[] NAMES = {"Blur Off", "Stock", "Frosted Glass"};
+    static final String[] NAMES = {L10n.t("Blur Off"), L10n.t("Stock"), L10n.t("Frosted Glass")};
 
     private static long at; private static int value = FROSTED;
 

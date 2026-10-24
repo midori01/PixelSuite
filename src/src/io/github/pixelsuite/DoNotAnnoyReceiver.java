@@ -23,16 +23,16 @@ public final class DoNotAnnoyReceiver extends BroadcastReceiver {
             String title = in.getStringExtra("title");
             long when = in.getLongExtra("time", System.currentTimeMillis());
             if (number == null) number = "";
-            if (title == null || title.isEmpty()) title = number.isEmpty() ? "Unknown caller" : number;
+            if (title == null || title.isEmpty()) title = number.isEmpty() ? L10n.t("Unknown caller") : number;
             String body = in.getStringExtra("body");
-            if (body == null || body.isEmpty()) body = "Incoming call deflected (device reported as switched off)";
+            if (body == null || body.isEmpty()) body = L10n.t("Incoming call deflected (device reported as switched off)");
 
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null || !(Boolean) NotificationManager.class.getMethod("areNotificationsEnabled").invoke(nm)) { setResultCode(0); return; }
             Class<?> chType = Class.forName("android.app.NotificationChannel");
             if (NotificationManager.class.getMethod("getNotificationChannel", String.class).invoke(nm, CHANNEL) == null) {
                 Object ch = chType.getConstructor(String.class, CharSequence.class, int.class).newInstance(CHANNEL, "Do Not Annoy", 4 );
-                chType.getMethod("setDescription", String.class).invoke(ch, "Calls deflected by Do Not Annoy");
+                chType.getMethod("setDescription", String.class).invoke(ch, L10n.t("Calls deflected by Do Not Annoy"));
                 NotificationManager.class.getMethod("createNotificationChannel", chType).invoke(nm, ch);
             }
             int id = (int) (when & 0x7fffffff);
@@ -71,7 +71,7 @@ public final class DoNotAnnoyReceiver extends BroadcastReceiver {
         if (number == null || number.isEmpty()) return;
         try {
             int icon = c.getResources().getIdentifier("ps_dna_call_wear", "drawable", c.getPackageName());
-            Notification.Action action = new Notification.Action.Builder(icon != 0 ? icon : android.R.drawable.sym_action_call, "Call", callIntent(c, number, id)).build();
+            Notification.Action action = new Notification.Action.Builder(icon != 0 ? icon : android.R.drawable.sym_action_call, L10n.t("Call"), callIntent(c, number, id)).build();
             b.extend(new Notification.WearableExtender().addAction(action));
         } catch (Throwable ignored) { }
     }

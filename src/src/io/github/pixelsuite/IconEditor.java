@@ -146,18 +146,18 @@ final class IconEditor {
             stage = new Stage(a);
             root.addView(stage, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-            close = roundButton(new LauncherGlyph(a, 12), buttonColor, 0xffffffff, "Cancel");
+            close = roundButton(new LauncherGlyph(a, 12), buttonColor, 0xffffffff, L10n.t("Cancel"));
             close.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { cancel(); } });
             root.addView(close, new FrameLayout.LayoutParams(dp(48), dp(48), Gravity.TOP | Gravity.LEFT));
 
             CheckGlyph tick = new CheckGlyph(onAccent, d);
-            check = roundButton(tick, accent, onAccent, "Save icon");
+            check = roundButton(tick, accent, onAccent, L10n.t("Save icon"));
             check.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { confirm(); } });
             check.setElevation(dp(3));
             root.addView(check, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.TOP | Gravity.RIGHT));
 
             title = new TextView(a);
-            title.setText("Adjust icon");
+            title.setText(L10n.t("Adjust icon"));
             title.setTextColor(0xffffffff);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             title.setTypeface(Typeface.create("google-sans-medium", Typeface.NORMAL));
@@ -166,7 +166,7 @@ final class IconEditor {
             root.addView(title, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(56), Gravity.TOP | Gravity.CENTER_HORIZONTAL));
 
             hint = new TextView(a);
-            hint.setText("Pinch to zoom, drag to move");
+            hint.setText(L10n.t("Pinch to zoom, drag to move"));
             hint.setTextColor(0xb3ffffff);
             hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             hint.setTypeface(Typeface.create("google-sans-text", Typeface.NORMAL));
@@ -184,14 +184,14 @@ final class IconEditor {
             back.setImageDrawable(arrow);
             reset.addView(back, new LinearLayout.LayoutParams(dp(18), dp(18)));
             TextView resetText = new TextView(a);
-            resetText.setText("Reset");
+            resetText.setText(L10n.t("Reset"));
             resetText.setTextColor(0xffffffff);
             resetText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             resetText.setTypeface(Typeface.create("google-sans-text-medium", Typeface.NORMAL));
             LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             tp.leftMargin = dp(8);
             reset.addView(resetText, tp);
-            reset.setContentDescription("Reset position and zoom");
+            reset.setContentDescription(L10n.t("Reset position and zoom"));
             reset.setAlpha(0f); reset.setVisibility(View.INVISIBLE);
             reset.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { stage.toStart(); } });
             root.addView(reset, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(40), Gravity.TOP | Gravity.CENTER_HORIZONTAL));
@@ -346,7 +346,7 @@ final class IconEditor {
             result.save(picture, area, new Done() { public void run(boolean ok) {
                 saving = false;
                 if (dialog == null || !dialog.isShowing()) { release(); return; }
-                if (!ok) { android.widget.Toast.makeText(a, "Could not save this icon. Try another image.", android.widget.Toast.LENGTH_SHORT).show(); land(null, false); return; }
+                if (!ok) { android.widget.Toast.makeText(a, L10n.t("Could not save this icon. Try another image."), android.widget.Toast.LENGTH_SHORT).show(); land(null, false); return; }
                 land(to, true);
             } });
         }
@@ -379,7 +379,7 @@ final class IconEditor {
                 stage.invalidate();
             } });
             fly.addListener(new AnimatorListenerAdapter() { @Override public void onAnimationEnd(Animator x) {
-                if (to == null) { if (ok) android.widget.Toast.makeText(a, "Icon updated", android.widget.Toast.LENGTH_SHORT).show(); dismiss(); return; }
+                if (to == null) { if (ok) android.widget.Toast.makeText(a, L10n.t("Icon updated"), android.widget.Toast.LENGTH_SHORT).show(); dismiss(); return; }
                 root.animate().alpha(0f).setDuration(180).setStartDelay(40).setListener(new AnimatorListenerAdapter() {
                     @Override public void onAnimationEnd(Animator y) { dismiss(); }
                 }).start();
@@ -402,7 +402,7 @@ final class IconEditor {
                     @Override public void onAnimationEnd(Animator x) { if (h.getAlpha() == 0f) h.setVisibility(View.INVISIBLE); }
                 }).start();
             }
-            hint.setText("Pinch to zoom, drag to move");
+            hint.setText(L10n.t("Pinch to zoom, drag to move"));
         }
 
         View roundButton(Drawable glyph, int fill, int tint, String what) {

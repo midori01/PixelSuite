@@ -91,7 +91,7 @@ final class ScopePanel {
    TextView name=new TextView(activity);name.setText(item.name);name.setTextSize(15);name.setTypeface(Typeface.DEFAULT,Typeface.BOLD);name.setTextColor(ink);words.addView(name);
    TextView pkg=new TextView(activity);pkg.setText(item.pkg);pkg.setTextSize(12);pkg.setTextColor(muted);pkg.setPadding(0,dp(activity,3),0,0);words.addView(pkg);
    row.addView(words,new LinearLayout.LayoutParams(0,-2,1));
-   TextView info=new TextView(activity);info.setText("!");info.setTextSize(17);info.setTypeface(Typeface.DEFAULT,Typeface.BOLD);info.setTextColor(accent);info.setGravity(Gravity.CENTER);info.setBackground(new SoftSurface(activity,true,accent));info.setLayerType(View.LAYER_TYPE_SOFTWARE,null);info.setClickable(true);info.setFocusable(true);info.setContentDescription("What "+item.name+" ("+item.pkg+") is used for");info.setOnClickListener(v->hint.show("**Used for:**\n"+item.detail));
+   TextView info=new TextView(activity);info.setText("!");info.setTextSize(17);info.setTypeface(Typeface.DEFAULT,Typeface.BOLD);info.setTextColor(accent);info.setGravity(Gravity.CENTER);info.setBackground(new SoftSurface(activity,true,accent));info.setLayerType(View.LAYER_TYPE_SOFTWARE,null);info.setClickable(true);info.setFocusable(true);info.setContentDescription(L10n.f("What %s (%s) is used for",item.name,item.pkg));info.setOnClickListener(v->hint.show("**Used for:**\n"+item.detail));
    row.addView(info,new LinearLayout.LayoutParams(dp(activity,48),dp(activity,48)));panel.addView(row,new LinearLayout.LayoutParams(-1,-2));
   }
   };

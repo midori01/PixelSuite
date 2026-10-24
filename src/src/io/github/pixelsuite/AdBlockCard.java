@@ -33,7 +33,7 @@ final class AdBlockCard extends LinearLayout implements SharedPreferences.OnShar
         WORK.execute(new Runnable(){public void run(){
             if(!AdBlock.isOn()||app.getSharedPreferences("pixelsuite_adblock",0).getInt("domains",0)==0){
                 AdBlock.Result r=AdBlock.setEnabled(app,true);
-                restartNote=r.needsReboot?"Restart the phone once to start blocking.":!r.ok?r.message:null;
+                restartNote=r.needsReboot?L10n.t("Restart the phone once to start blocking."):!r.ok?r.message:null;
             }else AdBlock.ensure(app);
         }});
     }
@@ -41,23 +41,23 @@ final class AdBlockCard extends LinearLayout implements SharedPreferences.OnShar
     AdBlockCard(Context c,int text,int sub){
         super(c);ink=text;secondary=sub;setOrientation(VERTICAL);setPadding(dp(22),dp(22),dp(22),dp(20));
         setBackground(AppSurfaces.card(c,26));
-        TextView eyebrow=label("AD BLOCKING",12,secondary,true);eyebrow.setLetterSpacing(.12f);addView(eyebrow);
+        TextView eyebrow=label(L10n.t("AD BLOCKING"),12,secondary,true);eyebrow.setLetterSpacing(.12f);addView(eyebrow);
         LinearLayout hero=new LinearLayout(c);hero.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title=label("Fewer ads.\nFaster pages.",27,ink,true);title.setLineSpacing(dp(1),1f);
+        TextView title=label(L10n.t("Fewer ads.\nFaster pages."),27,ink,true);title.setLineSpacing(dp(1),1f);
         hero.addView(title,new LayoutParams(0,-2,1));
         ProtectionMark mark=new ProtectionMark(c);mark.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         hero.addView(mark,new LayoutParams(dp(124),dp(132)));addView(hero,new LayoutParams(-1,-2));
-        TextView description=label("Ad blocking across Chrome, Google News and other apps. Always on, with daily list updates.",15,secondary,false);
+        TextView description=label(L10n.t("Ad blocking across Chrome, Google News and other apps. Always on, with daily list updates."),15,secondary,false);
         description.setLineSpacing(dp(3),1f);addView(description);
-        status=label("Preparing ad protection…",14,ink,true);status.setPadding(0,dp(18),0,dp(4));status.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);addView(status);
+        status=label(L10n.t("Preparing ad protection…"),14,ink,true);status.setPadding(0,dp(18),0,dp(4));status.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);addView(status);
         warning=label("",14,secondary,false);warning.setVisibility(GONE);addView(warning);
-        update=label("Update lists",15,ink,true);update.setGravity(Gravity.CENTER);update.setPadding(dp(16),dp(12),dp(16),dp(12));update.setMinimumHeight(dp(48));
+        update=label(L10n.t("Update lists"),15,ink,true);update.setGravity(Gravity.CENTER);update.setPadding(dp(16),dp(12),dp(16),dp(12));update.setMinimumHeight(dp(48));
         GradientDrawable button=new GradientDrawable();button.setColor(FrostedSurface.dark(c)?0xff303137:0xffe6eaf0);button.setCornerRadius(dp(24));update.setBackground(button);
         LayoutParams action=new LayoutParams(-1,-2);action.topMargin=dp(14);addView(update,action);update.setClickable(true);update.setFocusable(true);
         update.setOnClickListener(new OnClickListener(){public void onClick(View v){updateLists();}});
-        TextView note=label("Works across apps and browsers, including Private DNS. Removes empty ad boxes in Chrome.",12,secondary,false);note.setPadding(0,dp(14),0,dp(10));addView(note);
+        TextView note=label(L10n.t("Works across apps and browsers, including Private DNS. Removes empty ad boxes in Chrome."),12,secondary,false);note.setPadding(0,dp(14),0,dp(10));addView(note);
         TextView credit=label("",12,secondary,false);
-        credit.setText(Html.fromHtml("Ad lists: <a href=\"https://github.com/hagezi/dns-blocklists-legacy\">HaGeZi Multi LIGHT</a> (GPL-3.0) + <a href=\"https://adaway.org/hosts.txt\">AdAway</a> (CC BY 3.0). Pixel Suite's own blocker."));
+        credit.setText(Html.fromHtml(L10n.t("Ad lists: <a href=\"https://github.com/hagezi/dns-blocklists-legacy\">HaGeZi Multi LIGHT</a> (GPL-3.0) + <a href=\"https://adaway.org/hosts.txt\">AdAway</a> (CC BY 3.0). Pixel Suite's own blocker.")));
         credit.setLinkTextColor(ink);credit.setMovementMethod(LinkMovementMethod.getInstance());addView(credit);
         prefs=c.getSharedPreferences("pixelsuite_adblock",0);
     }
@@ -68,21 +68,21 @@ final class AdBlockCard extends LinearLayout implements SharedPreferences.OnShar
     @Override public void onSharedPreferenceChanged(SharedPreferences p,String key){refresh();}
     private void refresh(){
         if(!attached)return;
-        if(!PatronAccess.unlocked()){status.setText("Unlock with Patreon");warning.setVisibility(GONE);update.setText("Update lists");update.setAlpha(.4f);invalidateMark(this);return;}update.setAlpha(1f);invalidateMark(this);
+        if(!PatronAccess.unlocked()){status.setText(L10n.t("Unlock with Patreon"));warning.setVisibility(GONE);update.setText(L10n.t("Update lists"));update.setAlpha(.4f);invalidateMark(this);return;}update.setAlpha(1f);invalidateMark(this);
         WORK.execute(new Runnable(){public void run(){
             final String value=AdBlock.status(getContext());
-            final String conflict=AdBlock.otherBlocker()?"AdAway or Systemless hosts is also on. Use only one blocker.":null;
+            final String conflict=AdBlock.otherBlocker()?L10n.t("AdAway or Systemless hosts is also on. Use only one blocker."):null;
             post(new Runnable(){public void run(){if(!attached)return;if(!PatronAccess.unlocked()){refresh();return;}status.setText(value);String message=conflict!=null?conflict:restartNote;warning.setText(message);warning.setVisibility(message==null?GONE:VISIBLE);}});
         }});
     }
     private void updateLists(){
         if(!PatronAccess.unlocked()){PatronPaper.open((android.app.Activity)getContext(),0,null);return;}
-        if(busy)return;busy=true;update.setEnabled(false);update.setText("Updating…");
+        if(busy)return;busy=true;update.setEnabled(false);update.setText(L10n.t("Updating…"));
         final Context app=getContext().getApplicationContext();
         WORK.execute(new Runnable(){public void run(){
             final AdBlock.Result r=AdBlock.isOn()?AdBlock.update(app):AdBlock.setEnabled(app,true);
-            restartNote=r.needsReboot?"Restart the phone once to start blocking.":!r.ok?r.message:null;
-            post(new Runnable(){public void run(){busy=false;if(!attached)return;update.setEnabled(true);update.setText("Update lists");refresh();if(!r.ok&&r.message!=null)AppToast.makeText(getContext(),r.message,Toast.LENGTH_LONG).show();}});
+            restartNote=r.needsReboot?L10n.t("Restart the phone once to start blocking."):!r.ok?r.message:null;
+            post(new Runnable(){public void run(){busy=false;if(!attached)return;update.setEnabled(true);update.setText(L10n.t("Update lists"));refresh();if(!r.ok&&r.message!=null)AppToast.makeText(getContext(),r.message,Toast.LENGTH_LONG).show();}});
         }});
     }
 

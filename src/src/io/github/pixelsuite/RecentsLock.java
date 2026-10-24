@@ -550,7 +550,7 @@ final class RecentsLock {
                         boolean isOn = isLocked(container);
                         Lock glyph = new Lock(text.getCurrentTextColor(), isOn ? 1f : 0f);
                         icon.setBackground(glyph);
-                        text.setText(isOn ? "Unlock" : "Lock");
+                        text.setText(isOn ? L10n.t("Unlock") : L10n.t("Lock"));
                         Xp.setAdditionalInstanceField(p.thisObject, "pixelsuite_glyph", glyph);
                         Xp.setAdditionalInstanceField(p.thisObject, "pixelsuite_text", text);
                         p.setResult(null);
@@ -569,7 +569,7 @@ final class RecentsLock {
                         final boolean locking = !isLocked(container);
                         Object g = Xp.getAdditionalInstanceField(item, "pixelsuite_glyph");
                         Object t = Xp.getAdditionalInstanceField(item, "pixelsuite_text");
-                        if (t instanceof TextView) ((TextView) t).setText(locking ? "Unlock" : "Lock");
+                        if (t instanceof TextView) ((TextView) t).setText(locking ? L10n.t("Unlock") : L10n.t("Lock"));
                         long close = 0;
                         if (g instanceof Lock) { ((Lock) g).animateTo(locking ? 1f : 0f); close = 300; }
                         Haptics.tick(taskView.getContext());
@@ -672,9 +672,9 @@ final class RecentsLock {
         List<?> list = containers(taskView);
         int count = list.size(), lockedApps = lockedCount(taskView);
         Haptics.tick(taskView.getContext());
-        if (count <= 1) toast(taskView, "App is locked");
-        else if (lockedApps >= count) toast(taskView, "Two apps locked");
-        else { toast(taskView, "App remains locked"); splitOff(taskView, list); }
+        if (count <= 1) toast(taskView, L10n.t("App is locked"));
+        else if (lockedApps >= count) toast(taskView, L10n.t("Two apps locked"));
+        else { toast(taskView, L10n.t("App remains locked")); splitOff(taskView, list); }
     }
 
     private static void splitOff(final View taskView, List<?> list) {
@@ -761,7 +761,7 @@ final class RecentsLock {
         }
         if (going.isEmpty() && fromPairs.isEmpty()) {
             try { Haptics.tick(((View) recents).getContext()); } catch (Throwable ignored) { }
-            if (anchor != null) toast(anchor, "Cannot dismiss locked apps");
+            if (anchor != null) toast(anchor, L10n.t("Cannot dismiss locked apps"));
             return;
         }
         try { Haptics.click(((View) recents).getContext()); } catch (Throwable ignored) { }
@@ -780,7 +780,7 @@ final class RecentsLock {
                 tv.setTranslationY(0f); tv.setScaleX(0.94f); tv.setScaleY(0.94f);
                 tv.animate().alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(0).setDuration(190).setInterpolator(new DecelerateInterpolator()).start();
             }
-            if (toastAt != null) toast(toastAt, "Cannot dismiss locked apps");
+            if (toastAt != null) toast(toastAt, L10n.t("Cannot dismiss locked apps"));
         } }, 25L * Math.max(0, shown.size() - 1) + 230);
         main.postDelayed(new Runnable() { public void run() {
             Runnable after = new Runnable() { public void run() {
@@ -1029,7 +1029,7 @@ final class RecentsLock {
             glyph.setCallback(this);
             setElevation(3 * d);
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
-            setContentDescription("Locked");
+            setContentDescription(L10n.t("Locked"));
         }
         @Override protected boolean verifyDrawable(Drawable who) { return who == glyph || super.verifyDrawable(who); }
         @Override protected void onDraw(Canvas canvas) {

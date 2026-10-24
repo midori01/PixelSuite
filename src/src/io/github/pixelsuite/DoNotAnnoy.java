@@ -213,9 +213,6 @@ final class DoNotAnnoy {
         }
     }
 
-    private static final String BODY_OFF = "Incoming call deflected (device reported as switched off)";
-    private static final String BODY_DECLINED = "Incoming call declined by Do Not Annoy";
-
     private static void deflected(final String number, final boolean declined) {
         final Context c = app();
         if (c == null) return;
@@ -223,9 +220,9 @@ final class DoNotAnnoy {
             if (!declined) networks(c);
             String name = contact(c, number);
             log(c, number, name);
-            final String title = name != null ? name : number.isEmpty() ? "Unknown caller" : number;
+            final String title = name != null ? name : number.isEmpty() ? L10n.t("Unknown caller") : number;
             final String contact = name;
-            final String body = declined ? BODY_DECLINED : BODY_OFF;
+            final String body = declined ? L10n.t("Incoming call declined by Do Not Annoy") : L10n.t("Incoming call deflected (device reported as switched off)");
             new Handler(Looper.getMainLooper()).post(() -> show(c, title, number, contact, body));
         }, "PixelSuiteDNA").start();
     }
@@ -292,7 +289,7 @@ final class DoNotAnnoy {
             Class<?> chType = Class.forName("android.app.NotificationChannel");
             if (NotificationManager.class.getMethod("getNotificationChannel", String.class).invoke(nm, CHANNEL) == null) {
                 Object ch = chType.getConstructor(String.class, CharSequence.class, int.class).newInstance(CHANNEL, "Do Not Annoy", 4 );
-                chType.getMethod("setDescription", String.class).invoke(ch, "Calls deflected by Pixel Suite's Do Not Annoy");
+                chType.getMethod("setDescription", String.class).invoke(ch, L10n.t("Calls deflected by Pixel Suite's Do Not Annoy"));
                 NotificationManager.class.getMethod("createNotificationChannel", chType).invoke(nm, ch);
             }
             int id = (int) (System.currentTimeMillis() & 0x7fffffff);
@@ -316,8 +313,8 @@ final class DoNotAnnoy {
                 PendingIntent call = PendingIntent.getActivity(c, id + 1,
                         new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                         PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-                b.addAction(new Notification.Action.Builder(android.R.drawable.sym_action_call, "Call", call).build());
-                try { b.extend(new Notification.WearableExtender().addAction(new Notification.Action.Builder(android.R.drawable.sym_action_call, "Call", call).build())); } catch (Throwable ignored) { }
+                b.addAction(new Notification.Action.Builder(android.R.drawable.sym_action_call, L10n.t("Call"), call).build());
+                try { b.extend(new Notification.WearableExtender().addAction(new Notification.Action.Builder(android.R.drawable.sym_action_call, L10n.t("Call"), call).build())); } catch (Throwable ignored) { }
             }
             nm.notify("pixelsuite_dna", id, b.build());
         } catch (Throwable ignored) { }

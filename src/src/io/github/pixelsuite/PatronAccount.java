@@ -28,20 +28,20 @@ final class PatronAccount {
  private TextView text(String value,int size,int color,boolean bold){TextView t=new TextView(activity);t.setText(value);t.setTextSize(size);t.setTextColor(color);t.setTypeface(Typeface.create("sans-serif",bold?Typeface.BOLD:Typeface.NORMAL));t.setPadding(0,dp(6),0,dp(6));return t;}
  private void button(String name,Runnable action){TextView t=text(name,16,ink,true);t.setGravity(Gravity.CENTER);t.setMinimumHeight(dp(48));t.setBackground(AppSurfaces.accountButton(activity,24));LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.topMargin=dp(10);content.addView(t,lp);t.setEnabled(!busy);t.setAlpha(busy?.55f:1);t.setOnClickListener(v->action.run());}
  private void render(){if(activity.isFinishing()||activity.isDestroyed())return;content.removeAllViews();LinearLayout heading=new LinearLayout(activity);heading.setGravity(Gravity.CENTER_VERTICAL);
-  heading.addView(text("Patreon account",22,ink,true),new LinearLayout.LayoutParams(0,-2,1));TextView close=text("×",27,muted,false);close.setGravity(Gravity.CENTER);AppCloseButton.style(close);close.setContentDescription("Close account");heading.addView(close,new LinearLayout.LayoutParams(dp(48),dp(48)));close.setOnClickListener(v->dialog.dismiss());content.addView(heading);
-  if(!PatronAccess.loggedIn(activity)){content.addView(text("Sign in with Patreon",16,muted,false));button("Sign in with Patreon",()->{dialog.dismiss();PatronPaper.login(activity);});return;}
-  content.addView(text(PatronAccess.prefs(activity).getString("name","Patreon member"),18,ink,true));
+  heading.addView(text(L10n.t("Patreon account"),22,ink,true),new LinearLayout.LayoutParams(0,-2,1));TextView close=text("×",27,muted,false);close.setGravity(Gravity.CENTER);AppCloseButton.style(close);close.setContentDescription(L10n.t("Close account"));heading.addView(close,new LinearLayout.LayoutParams(dp(48),dp(48)));close.setOnClickListener(v->dialog.dismiss());content.addView(heading);
+  if(!PatronAccess.loggedIn(activity)){content.addView(text(L10n.t("Sign in with Patreon"),16,muted,false));button(L10n.t("Sign in with Patreon"),()->{dialog.dismiss();PatronPaper.login(activity);});return;}
+  content.addView(text(PatronAccess.prefs(activity).getString("name",L10n.t("Patreon member")),18,ink,true));
   if(PatronAccess.unlocked()){
-   content.addView(text("Patron ✓",18,ink,true));boolean creator=false;try{creator="creator".equals(PatronAccess.verify(activity,PatronAccess.prefs(activity).getString("pass",""),false).optString("membership"));}catch(Exception ignored){}
-   long expiry=PatronAccess.passExpiry(activity);if(creator){TextView expiration=text("Pass expires:  ∞",14,muted,false);android.text.SpannableString label=new android.text.SpannableString(expiration.getText());label.setSpan(new InfinityMark(),label.length()-1,label.length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);expiration.setText(label);content.addView(expiration);}else if(expiry>0)content.addView(text("Pass expires "+java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM,java.text.DateFormat.SHORT).format(new java.util.Date(expiry*1000)),14,muted,false));
-   button(busy?"Refreshing…":"Refresh",()->{busy=true;render();PatronAccess.refresh(activity,()->{busy=false;render();String error=PatronAccess.prefs(activity).getString("refresh_error",null);if(error!=null)AppToast.makeText(activity,error,Toast.LENGTH_LONG).show();else AppToast.makeText(activity,PatronAccess.unlocked()?"Membership refreshed":PatronAccess.membershipMessage(activity),Toast.LENGTH_LONG).show();});});
+   content.addView(text(L10n.t("Patron ✓"),18,ink,true));boolean creator=false;try{creator="creator".equals(PatronAccess.verify(activity,PatronAccess.prefs(activity).getString("pass",""),false).optString("membership"));}catch(Exception ignored){}
+   long expiry=PatronAccess.passExpiry(activity);if(creator){TextView expiration=text(L10n.t("Pass expires:  ∞"),14,muted,false);android.text.SpannableString label=new android.text.SpannableString(expiration.getText());label.setSpan(new InfinityMark(),label.length()-1,label.length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);expiration.setText(label);content.addView(expiration);}else if(expiry>0)content.addView(text(L10n.f("Pass expires %s",java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM,java.text.DateFormat.SHORT).format(new java.util.Date(expiry*1000))),14,muted,false));
+   button(busy?L10n.t("Refreshing…"):L10n.t("Refresh"),()->{busy=true;render();PatronAccess.refresh(activity,()->{busy=false;render();String error=PatronAccess.prefs(activity).getString("refresh_error",null);if(error!=null)AppToast.makeText(activity,error,Toast.LENGTH_LONG).show();else AppToast.makeText(activity,PatronAccess.unlocked()?L10n.t("Membership refreshed"):PatronAccess.membershipMessage(activity),Toast.LENGTH_LONG).show();});});
   }else{
-   content.addView(text("A Quest for the Kind-Hearted",21,ink,true));content.addView(text(PatronAccess.membershipMessage(activity),16,muted,false));
-   content.addView(text("Support Pixel Suite to unlock call recording, an ad-free Google feed and ad blocking.",15,muted,false));
-   button("Read the quest",()->{dialog.dismiss();PatronPaper.open(activity,0,null);});
-   button("Join on Patreon · $5/month",()->{PatronAccess.prefs(activity).edit().putBoolean("join_return",true).apply();dialog.dismiss();PatronPaper.join(activity);});
-   button("Unlock",()->{dialog.dismiss();PatronPaper.login(activity);});
+   content.addView(text(L10n.t("A Quest for the Kind-Hearted"),21,ink,true));content.addView(text(PatronAccess.membershipMessage(activity),16,muted,false));
+   content.addView(text(L10n.t("Support Pixel Suite to unlock call recording, an ad-free Google feed and ad blocking."),15,muted,false));
+   button(L10n.t("Read the quest"),()->{dialog.dismiss();PatronPaper.open(activity,0,null);});
+   button(L10n.t("Join on Patreon · $5/month"),()->{PatronAccess.prefs(activity).edit().putBoolean("join_return",true).apply();dialog.dismiss();PatronPaper.join(activity);});
+   button(L10n.t("Unlock"),()->{dialog.dismiss();PatronPaper.login(activity);});
   }
-  button("Sign out",()->{busy=true;PatronAccess.logout(activity);dialog.dismiss();});
+  button(L10n.t("Sign out"),()->{busy=true;PatronAccess.logout(activity);dialog.dismiss();});
  }
 }

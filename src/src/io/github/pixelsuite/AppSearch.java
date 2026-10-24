@@ -58,12 +58,12 @@ final class AppSearch extends FrameLayout implements Choreographer.FrameCallback
         bar=new Bar(a);bar.setElevation(dp(6));addView(bar);
         panelFrost=new AppFrost(results,page,dp(24),host.background());results.setBackground(panelFrost);
         barFrost=AppFrost.pill(bar,page,dp(28),host.background());barFrost.setCallback(bar);
-        input=new EditText(a){@Override public boolean onKeyPreIme(int key,KeyEvent event){if(key==KeyEvent.KEYCODE_BACK){if(event.getAction()==KeyEvent.ACTION_UP)back();return true;}return super.onKeyPreIme(key,event);}};input.setSingleLine(true);input.setTextSize(16);input.setBackgroundColor(Color.TRANSPARENT);input.setHint("Search");
+        input=new EditText(a){@Override public boolean onKeyPreIme(int key,KeyEvent event){if(key==KeyEvent.KEYCODE_BACK){if(event.getAction()==KeyEvent.ACTION_UP)back();return true;}return super.onKeyPreIme(key,event);}};input.setSingleLine(true);input.setTextSize(16);input.setBackgroundColor(Color.TRANSPARENT);input.setHint(L10n.t("Search"));
         input.setOnTouchListener((v,event)->{if(event.getActionMasked()==MotionEvent.ACTION_DOWN)keyboardDismissRequested=false;return false;});
         input.setPadding(0,0,0,0);
         if(Build.VERSION.SDK_INT>=29)try{for(String method:new String[]{"setTextSelectHandle","setTextSelectHandleLeft","setTextSelectHandleRight"}){android.graphics.drawable.ColorDrawable transparent=new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT);transparent.setBounds(0,0,1,1);TextView.class.getMethod(method,Drawable.class).invoke(input,transparent);}}catch(Throwable ignored){}
 input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);bar.addView(input);
-        clear=new TextView(a);clear.setText("×");clear.setTextSize(25);clear.setGravity(Gravity.CENTER);clear.setContentDescription("Clear search");clear.setOnClickListener(v->input.setText(""));bar.addView(clear);
+        clear=new TextView(a);clear.setText("×");clear.setTextSize(25);clear.setGravity(Gravity.CENTER);clear.setContentDescription(L10n.t("Clear search"));clear.setOnClickListener(v->input.setText(""));bar.addView(clear);
         input.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){if(opened)update();}public void afterTextChanged(Editable e){}});
         input.setOnEditorActionListener((v,action,event)->{if(action==EditorInfo.IME_ACTION_SEARCH&&!matches.isEmpty()){activate(matches.get(0));return true;}return false;});
         setOnApplyWindowInsetsListener((v,in)->{status=in.getSystemWindowInsetTop();int b=in.getSystemWindowInsetBottom();if(Build.VERSION.SDK_INT<30){ime(b>dp(100)?b:0,b>dp(100)?nav:b);}else SearchIme.installInsets(this,in);return in;});
@@ -82,7 +82,7 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
         if(disposed)return;boolean first=!isOpen();holdWindow();keyboardRequested=false;keyboardDismissRequested=false;opened=true;liveActions.clear();liveEntries.clear();if(page.getParent() instanceof View)collectActions((View)page.getParent());host.searchVisible(true);input.setVisibility(VISIBLE);input.requestFocus();
         bar.setContentDescription(null);performHapticFeedback(6);spring(1);
         if(first&&input.length()>0)update();
-        if(index==null){final Context c=activity.getApplicationContext();io.execute(()->{try{final AppSearchIndex found=AppSearchIndex.load(c);main.post(()->{if(!disposed){index=found;if(opened)update();}});}catch(Exception e){main.post(()->{if(opened){rows.removeAllViews();rows.addView(text("Search unavailable",15,host.secondary()));}});}});}
+        if(index==null){final Context c=activity.getApplicationContext();io.execute(()->{try{final AppSearchIndex found=AppSearchIndex.load(c);main.post(()->{if(!disposed){index=found;if(opened)update();}});}catch(Exception e){main.post(()->{if(opened){rows.removeAllViews();rows.addView(text(L10n.t("Search unavailable"),15,host.secondary()));}});}});}
 
     }
     boolean back(){
@@ -118,7 +118,7 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
     }
     private void closed(){
         restoreWindow();keyboardRequested=false;hasQuery=false;stableRows.clear();input.setText("");input.setVisibility(INVISIBLE);clear.setVisibility(INVISIBLE);results.setVisibility(INVISIBLE);rows.removeAllViews();matches=Collections.emptyList();switches.clear();liveActions.clear();liveEntries.clear();
-        bar.setContentDescription("Search, button");host.searchVisible(false);bar.sendAccessibilityEvent(32);
+        bar.setContentDescription(L10n.t("Search, button"));host.searchVisible(false);bar.sendAccessibilityEvent(32);
         Runnable next=afterClose;afterClose=null;if(next!=null)next.run();
     }
     void palette(){if(Build.VERSION.SDK_INT>=29)try{android.graphics.drawable.GradientDrawable cursor=new android.graphics.drawable.GradientDrawable();cursor.setColor(host.accent());cursor.setSize(dp(2),dp(24));TextView.class.getMethod("setTextCursorDrawable",Drawable.class).invoke(input,cursor);}catch(Throwable ignored){}panelFrost.pageColor(host.background());barFrost.pageColor(host.background());input.setTextColor(host.primary());input.setHintTextColor(host.secondary());clear.setTextColor(host.primary());if(opened)update();bar.invalidate();results.invalidate();}
@@ -129,7 +129,7 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
         for(int i=0;i<rows.getChildCount();i++){View v=rows.getChildAt(i);oldTops.put(v,v.getY());}switches.clear();String q=query().trim();hasQuery=!q.isEmpty();if(!hasQuery){matches=Collections.emptyList();rows.removeAllViews();stableRows.clear();oldTops.clear();results.getOverlay().clear();extent=extentTarget=extentVelocity=0;position();tick();return;}
         for(int i=rows.getChildCount()-1;i>=0;i--)if(!stableRows.containsValue(rows.getChildAt(i)))rows.removeViewAt(i);
         results.setVisibility(VISIBLE);matches=index==null?Collections.emptyList():index.including(liveEntries).find(q);
-        if(index==null||matches.isEmpty()){TextView empty=text(index==null?"Searching…":"No results for \""+q+"\"",15,host.secondary());empty.setGravity(Gravity.CENTER);empty.setPadding(dp(16),dp(20),dp(16),dp(20));rows.addView(empty);}
+        if(index==null||matches.isEmpty()){TextView empty=text(index==null?L10n.t("Searching…"):L10n.f("No results for \"%s\"",q),15,host.secondary());empty.setGravity(Gravity.CENTER);empty.setPadding(dp(16),dp(20),dp(16),dp(20));rows.addView(empty);}
         final Set<String> wanted=new HashSet<String>();for(AppSearchIndex.Entry e:matches)wanted.add(e.id);
         for(String id:new ArrayList<String>(stableRows.keySet()))if(!wanted.contains(id)){View gone=stableRows.remove(id);rows.removeView(gone);if(motion()){results.getOverlay().add(gone);gone.animate().alpha(0).setDuration(90).withEndAction(()->results.getOverlay().remove(gone)).start();}}
         if(matches.isEmpty()){stableRows.clear();while(rows.getChildCount()>1)rows.removeViewAt(0);}
@@ -143,7 +143,7 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
             TextView crumb=text(e.breadcrumb,13,host.secondary());crumb.setMaxLines(2);labels.addView(crumb);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-2,1);lp.leftMargin=hasIcon?dp(12):0;lp.rightMargin=dp(8);row.addView(labels,lp);
             if("TOGGLE".equals(e.kind)){
                 boolean lock=host.locked(e);Switch sw=new Switch(activity);sw.setChecked(host.checked(e.key));
-                SwitchStyle.apply(sw,host.accent(),host.trackOff(),host.onAccent(),host.secondary());sw.setEnabled(!lock&&host.inline(e));sw.setAlpha(lock?.4f:1);sw.setContentDescription(e.title+", "+e.breadcrumb+", switch, "+(sw.isChecked()?"on":"off"));
+                SwitchStyle.apply(sw,host.accent(),host.trackOff(),host.onAccent(),host.secondary());sw.setEnabled(!lock&&host.inline(e));sw.setAlpha(lock?.4f:1);sw.setContentDescription(L10n.f("%s, %s, switch, %s",e.title,e.breadcrumb,sw.isChecked()?L10n.t("On"):L10n.t("Off")));
                 row.addView(sw);if(lock)row.addView(text("🔒",13,host.secondary()));
                 if(!lock&&host.inline(e)){switches.put(e.key,sw);bindSwitch(sw,e);}
                 row.setOnClickListener(v->activate(e));
@@ -229,8 +229,8 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
     private final class Bar extends FrameLayout {
         @Override protected boolean verifyDrawable(Drawable drawable){return drawable==barFrost||super.verifyDrawable(drawable);}
         final Paint p=new Paint(3),label=new Paint(3);final Path clip=new Path();final RectF bounds=new RectF();final Rect labelInk=new Rect();
-        Bar(Context c){super(c);label.setTextSize(16*getResources().getDisplayMetrics().scaledDensity);label.setTypeface(Typeface.create("sans-serif-medium",0));label.getTextBounds("Search",0,6,labelInk);setWillNotDraw(false);setContentDescription("Search, button");setFocusable(true);setOnClickListener(v->open());}
-        float widthNow(){float closed=Math.min(dp(96)+label.measureText("Search"),getWidth()-dp(8));return closed+(getWidth()-closed)*f();}
+        Bar(Context c){super(c);String searchLabel=L10n.t("Search");label.setTextSize(16*getResources().getDisplayMetrics().scaledDensity);label.setTypeface(Typeface.create("sans-serif-medium",0));label.getTextBounds(searchLabel,0,searchLabel.length(),labelInk);setWillNotDraw(false);setContentDescription(L10n.t("Search, button"));setFocusable(true);setOnClickListener(v->open());}
+        float widthNow(){String searchLabel=L10n.t("Search");float closed=Math.min(dp(96)+label.measureText(searchLabel),getWidth()-dp(8));return closed+(getWidth()-closed)*f();}
         protected void onMeasure(int w,int h){super.onMeasure(w,h);int width=MeasureSpec.getSize(w),height=MeasureSpec.getSize(h);input.measure(MeasureSpec.makeMeasureSpec(Math.max(1,width-dp(104)),MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(height,MeasureSpec.EXACTLY));clear.measure(MeasureSpec.makeMeasureSpec(dp(48),MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(height,MeasureSpec.EXACTLY));}
         protected void onLayout(boolean ch,int l,int t,int r,int b){input.layout(dp(52),0,getWidth()-dp(52),getHeight());clear.layout(getWidth()-dp(52),0,getWidth()-dp(4),getHeight());}
         protected void onDraw(Canvas c){
@@ -239,7 +239,7 @@ input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);input.setInputType(1|android.t
             float iconWidth=dp(20),gap=dp(10),groupLeft=(getWidth()-iconWidth-gap-labelInk.width())/2f;
             float labelX=groupLeft+iconWidth+gap-labelInk.left;
             float collapsedIcon=groupLeft+dp(8);float cx=collapsedIcon+(dp(30)-collapsedIcon)*f();p.setColor(host.secondary());p.setAlpha(255);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));c.drawCircle(cx,getHeight()/2f-dp(2),dp(7),p);c.drawLine(cx+dp(5),getHeight()/2f+dp(3),cx+dp(11),getHeight()/2f+dp(9),p);p.setStyle(Paint.Style.FILL);
-            label.setColor(host.primary());label.setAlpha(Math.round(255*Math.max(0,1-f()*3)));c.drawText("Search",labelX,getHeight()/2f-labelInk.exactCenterY(),label);
+            label.setColor(host.primary());label.setAlpha(Math.round(255*Math.max(0,1-f()*3)));c.drawText(L10n.t("Search"),labelX,getHeight()/2f-labelInk.exactCenterY(),label);
         }
     }
 }

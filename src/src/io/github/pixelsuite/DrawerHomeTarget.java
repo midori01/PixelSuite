@@ -51,7 +51,7 @@ final class DrawerHomeTarget {
                     if(top>=FrostedSurface.dp(a,20)&&top<searchTop)y=top;
                 }
             }catch(Throwable ignored){}
-            final LinearLayout view=makePill(a,"Add to home screen",3,remove,"Drag here to add to home screen");
+            final LinearLayout view=makePill(a,L10n.t("Add to home screen"),3,remove,L10n.t("Drag here to add to home screen"));
             background=pillBackground;
             addPill(layer,view,addWidth,height,x,y);
             owner=a;pill=view;hover=0;intro=true;folderSource=DrawerFolders.isFolder(source.getTag());
@@ -59,7 +59,7 @@ final class DrawerHomeTarget {
             if(folderSource){
                 int bottomInset=0;
                 try{android.view.WindowInsets insets=layer.getRootWindowInsets();if(insets!=null)bottomInset=insets.getStableInsetBottom();}catch(Throwable ignored){}
-                final LinearLayout low=makePill(a,"Move to bottom",15,false,"Drag a folder here to move it to the end of the list");
+                final LinearLayout low=makePill(a,L10n.t("Move to bottom"),15,false,L10n.t("Drag a folder here to move it to the end of the list"));
                 bottomBackground=pillBackground;
                 int by=layer.getHeight()-bottomInset-FrostedSurface.dp(a,18)-height;
                 addPill(layer,low,addWidth,height,x,by);bottomY=by;
@@ -67,7 +67,7 @@ final class DrawerHomeTarget {
                 animateIn(low,height,false);
             }
             if(remove){
-                final LinearLayout second=makePill(a,"Remove",12,true,"Drag here to take out of the folder");
+                final LinearLayout second=makePill(a,"Remove",12,true,L10n.t("Drag here to take out of the folder"));
                 removeBackground=pillBackground;
                 addPill(layer,second,removeWidth,height,x+addWidth+gap,y);
                 removePill=second;removeHover=0;

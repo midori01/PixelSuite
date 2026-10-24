@@ -1196,7 +1196,7 @@ final class TextTool {
                 canvas.drawPath(arrow, p);
             }
         };
-        g.setContentDescription("Make text menu smaller");
+        g.setContentDescription(L10n.t("Make text menu smaller"));
         g.setOnTouchListener(new View.OnTouchListener() {
             float startX, startP; android.view.VelocityTracker vt; boolean moved;
             @Override public boolean onTouch(View v, MotionEvent e) {
@@ -1277,7 +1277,7 @@ final class TextTool {
         for (int i = 0; i < fonts.size(); i++) {
             if (i == SHOWN) {
                 moreFonts = new MoreFonts(a, ink);
-                moreFonts.setContentDescription("More fonts");
+                moreFonts.setContentDescription(L10n.t("More fonts"));
                 moreFonts.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { setExpanded(true, true); } });
                 fontRowV.addView(moreFonts, new LinearLayout.LayoutParams(dp(52), rowH()));
             }
@@ -1299,7 +1299,7 @@ final class TextTool {
             if (i == SHOWN) {
                 moreColours = new View(a);
                 moreColours.setBackground(new DoodleOverlay.RainbowIcon(dens));
-                moreColours.setContentDescription("More colours");
+                moreColours.setContentDescription(L10n.t("More colours"));
                 moreColours.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { setExpanded(true, true); } });
                 colourRowV.addView(moreColours, new LinearLayout.LayoutParams(dp(52), rowH()));
             }
@@ -1322,7 +1322,7 @@ final class TextTool {
             GradientDrawable g = new GradientDrawable(); g.setShape(GradientDrawable.OVAL); g.setColor(ink);
             done.setBackground(g);
             done.setTextColor(StudioToolbar.darkMenu() ? 0xff1d1b20 : 0xffffffff);
-            done.setContentDescription("Done");
+            done.setContentDescription(L10n.t("Done"));
             done.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { stopEditing(true); } });
             LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(dp(40), dp(40));
             dlp.leftMargin = dp(8);
@@ -1484,7 +1484,7 @@ final class TextTool {
                 canvas.drawRoundRect(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, h / 2, h / 2, p);
             }
         };
-        pill.setContentDescription("Move text menu");
+        pill.setContentDescription(L10n.t("Move text menu"));
         pill.setOnTouchListener(new View.OnTouchListener() {
             @Override public boolean onTouch(View v, MotionEvent e) {
                 if (e.getActionMasked() == MotionEvent.ACTION_DOWN && Math.abs(e.getX() - v.getWidth() / 2f) > 110 * dens) return false;

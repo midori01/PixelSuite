@@ -363,7 +363,7 @@ final class NavButtons {
         }
 
         @Override public CharSequence getContentDescription() {
-            return kind == BACK ? "Back" : kind == HOME ? "Home" : kind == RECENT ? "Recent apps" : null;
+            return kind == BACK ? L10n.t("Back") : kind == HOME ? L10n.t("Home") : kind == RECENT ? L10n.t("Recent apps") : null;
         }
 
         @Override public boolean onTouchEvent(MotionEvent e) {

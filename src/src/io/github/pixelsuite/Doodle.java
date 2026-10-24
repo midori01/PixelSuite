@@ -8,7 +8,7 @@ import android.graphics.RectF;
 final class Doodle {
     static final int ARROW = 0, DOUBLE_ARROW = 1, LINE = 2, RECT = 3, OVAL = 4, TRIANGLE = 5, STAR = 6, BUBBLE = 7;
     static final int KINDS = 8;
-    static final String[] NAMES = {"Arrow", "Double arrow", "Line", "Square", "Circle", "Triangle", "Star", "Speech bubble"};
+    static final String[] NAMES = {L10n.t("Arrow"), L10n.t("Double arrow"), L10n.t("Line"), L10n.t("Square"), L10n.t("Circle"), L10n.t("Triangle"), L10n.t("Star"), L10n.t("Speech bubble")};
 
     int kind;
     float x1, y1, x2, y2;

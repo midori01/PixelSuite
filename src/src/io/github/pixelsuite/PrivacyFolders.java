@@ -40,7 +40,7 @@ final class PrivacyFolders {
             if (DrawerFolders.isFolder(info)) { LauncherData.Folder f = DrawerFolders.record(info); if (f != null && f.name != null && !f.name.isEmpty()) return f.name; }
             Object t = LauncherFeatures.get(info, "title"); if (t != null && t.toString().length() > 0) return t.toString();
         } catch (Throwable ignored) { }
-        return "Folder";
+        return L10n.t("Folder");
     }
 
     private static long readAt; private static Set<String> readList = Collections.emptySet();
@@ -137,7 +137,7 @@ final class PrivacyFolders {
                 if (t == null && r instanceof TextView) t = ((TextView) r).getText();
                 if (t != null && "Remove".contentEquals(t)) { at = i; break; }
             }
-            LauncherFeatures.addFolderRow(rows, isLocked ? "Unlock folder" : "Lock folder", "pixelsuite_folder_privacy", 1, at, new View.OnClickListener() {
+            LauncherFeatures.addFolderRow(rows, isLocked ? L10n.t("Unlock folder") : L10n.t("Lock folder"), "pixelsuite_folder_privacy", 1, at, new View.OnClickListener() {
                 public void onClick(View v) { LauncherFeatures.call(popup, "close", true); change(key, name(info), isLocked); }
             });
             View row = rows.findViewWithTag("pixelsuite_folder_privacy");
@@ -153,7 +153,7 @@ final class PrivacyFolders {
         try {
             final String key = key(info); if (key == null) return;
             final boolean isLocked = locked(card.getContext()).contains(key);
-            FolderOptions.row(card, isLocked ? "Unlock folder" : "Lock folder", 1, false, new Runnable() { public void run() { dismiss.run(); change(key, name(info), isLocked); } });
+            FolderOptions.row(card, isLocked ? L10n.t("Unlock folder") : L10n.t("Lock folder"), 1, false, new Runnable() { public void run() { dismiss.run(); change(key, name(info), isLocked); } });
             View row = card.getChildAt(card.getChildCount() - 1);
             if (row instanceof FrameLayout && ((FrameLayout) row).getChildAt(0) instanceof ImageView) {
                 ImageView icon = (ImageView) ((FrameLayout) row).getChildAt(0);

@@ -55,38 +55,38 @@ final class CallRecordingSettings {
             final String selected=modeOk&&"manual".equals(snapshot.get(1))?"manual":"auto";
             final String folderLabel=value==null?null:label(value);
             activity.runOnUiThread(new Runnable(){public void run(){if(!activity.isFinishing()&&!activity.isDestroyed()){
-                if(value!=null){folder=value;cachedFolder=value;cachedLabel=folderLabel;summary.setText(folderLabel);folderLoaded=true;}else if(!folderLoaded)summary.setText("Couldn't load folder");
-                if(modeOk){mode=selected;cachedMode=selected;showMode();modeLoaded=true;}else if(!modeLoaded&&modeSummary!=null)modeSummary.setText("Couldn't load recording mode");
+                if(value!=null){folder=value;cachedFolder=value;cachedLabel=folderLabel;summary.setText(folderLabel);folderLoaded=true;}else if(!folderLoaded)summary.setText(L10n.t("Couldn't load folder"));
+                if(modeOk){mode=selected;cachedMode=selected;showMode();modeLoaded=true;}else if(!modeLoaded&&modeSummary!=null)modeSummary.setText(L10n.t("Couldn't load recording mode"));
                 updateEnabled();ready();
             }}});
         }});
     }
-    private void showMode(){if(modeSummary!=null)modeSummary.setText("manual".equals(mode)?"Manual: tap Record during a call":"Automatic: every call is recorded");}
+    private void showMode(){if(modeSummary!=null)modeSummary.setText("manual".equals(mode)?L10n.t("Manual: tap Record during a call"):L10n.t("Automatic: every call is recorded"));}
     void chooseMode(){
-        presenter.show(new AlertDialog.Builder(activity).setTitle("Recording mode")
-            .setSingleChoiceItems(new String[]{"Automatic (default)","Manual"},"manual".equals(mode)?1:0,new android.content.DialogInterface.OnClickListener(){
+        presenter.show(new AlertDialog.Builder(activity).setTitle(L10n.t("Recording mode"))
+            .setSingleChoiceItems(new String[]{L10n.t("Automatic (default)"),L10n.t("Manual")},"manual".equals(mode)?1:0,new android.content.DialogInterface.OnClickListener(){
                 public void onClick(android.content.DialogInterface dialog,int which){
                     dialog.dismiss();final String selected=which==1?"manual":"auto";
                     io.execute(new Runnable(){public void run(){
                         final boolean ok=Root.run("settings put secure "+CallRecording.MODE_KEY+" "+selected)!=null;
                         activity.runOnUiThread(new Runnable(){public void run(){
                             if(activity.isFinishing()||activity.isDestroyed())return;
-                            if(ok){mode=selected;cachedMode=selected;showMode();}else message("Couldn't save: root access needed");
+                            if(ok){mode=selected;cachedMode=selected;showMode();}else message(L10n.t("Couldn't save: root access needed"));
                         }});
                     }});
                 }
-            }).setNegativeButton("Cancel",null).create());
+            }).setNegativeButton(L10n.t("Cancel"),null).create());
     }
     void choose() {
-        presenter.show(new AlertDialog.Builder(activity).setTitle("Recordings folder")
-            .setItems(new String[]{"Recordings/Calls (default)","Choose folder…"},new android.content.DialogInterface.OnClickListener(){
+        presenter.show(new AlertDialog.Builder(activity).setTitle(L10n.t("Recordings folder"))
+            .setItems(new String[]{L10n.t("Recordings/Calls (default)"),L10n.t("Choose folder…")},new android.content.DialogInterface.OnClickListener(){
                 public void onClick(android.content.DialogInterface dialog,int which){
                     if(which==0)save(DEFAULT,null,false);
                     else try {
                         Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                         pick.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                         activity.startActivityForResult(pick,PICK_FOLDER);
-                    }catch(Exception unavailable){message("Folder picker isn't available.");}
+                    }catch(Exception unavailable){message(L10n.t("Folder picker isn't available."));}
                 }
             }).create());
     }
@@ -96,7 +96,7 @@ final class CallRecordingSettings {
         try {
             activity.getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             save("tree:"+uri.toString(),uri,!held);
-        }catch(Exception denied){message("Couldn't keep access to that folder.");}
+        }catch(Exception denied){message(L10n.t("Couldn't keep access to that folder."));}
     }
     private String read(){
         List<String> lines=Root.run("settings get secure "+CallRecording.FOLDER_KEY);
@@ -112,7 +112,7 @@ final class CallRecordingSettings {
             final String folderLabel=ok?label(value):null;
             activity.runOnUiThread(new Runnable(){public void run(){
                 if(activity.isFinishing()||activity.isDestroyed())return;
-                if(ok){folder=value;cachedFolder=value;cachedLabel=folderLabel;folderLoaded=true;summary.setText(folderLabel);updateEnabled();}else message("Couldn't save: root access needed");
+                if(ok){folder=value;cachedFolder=value;cachedLabel=folderLabel;folderLoaded=true;summary.setText(folderLabel);updateEnabled();}else message(L10n.t("Couldn't save: root access needed"));
             }});
         }});
     }
@@ -125,15 +125,15 @@ final class CallRecordingSettings {
         if(!value.startsWith("tree:"))return DEFAULT;
         try{
             Uri tree=Uri.parse(value.substring(5));
-            if(!hasPermission(tree))return DEFAULT+" (folder not available)";
+            if(!hasPermission(tree))return L10n.f("%s (folder not available)",DEFAULT);
             Uri doc=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
             android.database.Cursor cursor=activity.getContentResolver().query(doc,new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},null,null,null);
-            if(cursor==null)return DEFAULT+" (folder not available)";
-            try{if(!cursor.moveToFirst())return DEFAULT+" (folder not available)";}finally{cursor.close();}
+            if(cursor==null)return L10n.f("%s (folder not available)",DEFAULT);
+            try{if(!cursor.moveToFirst())return L10n.f("%s (folder not available)",DEFAULT);}finally{cursor.close();}
             String id=DocumentsContract.getTreeDocumentId(tree);int colon=id.indexOf(':');
             String volume=colon<0?id:id.substring(0,colon),path=colon<0?"":id.substring(colon+1);
-            return ("primary".equals(volume)?"Internal storage":"SD card")+(path.isEmpty()?"":"/"+path);
-        }catch(Exception unavailable){return DEFAULT+" (folder not available)";}
+            return ("primary".equals(volume)?L10n.t("Internal storage"):L10n.t("SD card"))+(path.isEmpty()?"":"/"+path);
+        }catch(Exception unavailable){return L10n.f("%s (folder not available)",DEFAULT);}
     }
     private void message(String value){AppToast.makeText(activity,value,Toast.LENGTH_SHORT).show();}
 }

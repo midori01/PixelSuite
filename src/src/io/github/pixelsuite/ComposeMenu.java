@@ -46,7 +46,7 @@ final class ComposeMenu {
             Xp.hookMethod(Resources.class.getDeclaredMethod("getText", int.class), new Xp.Callback() {
                 @Override protected void beforeHookedMethod(Xp.Param p) {
                     String s = labels.get((Integer) p.args[0]);
-                    if (s != null) p.setResult(s);
+                    if (s != null) p.setResult(L10n.t(s));
                 }
             });
             Xp.hookMethod(show, new Xp.Callback() {

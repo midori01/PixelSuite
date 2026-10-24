@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pixel Suite</string>
+    <string name="description">ジェスチャー、Pixel Launcher のカスタマイズ、アプリとフォルダのロック、スーパーダークモード、ファイル並べ替え、Pixel Studio や Google フォトでの自由なスクリーンショット切り抜きと落書き。すべての設定は Pixel Suite アプリで行えます。使用するエディタを含む推奨の LSPosed スコープを有効にし、それらのアプリを再起動するか端末を再起動してください。</string>
+</resources>

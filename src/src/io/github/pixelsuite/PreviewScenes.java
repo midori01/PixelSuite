@@ -77,7 +77,7 @@ final class PreviewScenes {
     private void outline(Canvas c,float x,float y,float w,float h,float r,int color){paint(color,true,2);c.drawRoundRect(x,y,x+w,y+h,r,r,p);}
     private void line(Canvas c,float x,float y,float a,float b,int color){paint(color,true,2.4f);c.drawLine(x,y,a,b,p);}
     private void circle(Canvas c,float x,float y,float r,int color){paint(color,false,0);c.drawCircle(x,y,r,p);}
-    private void text(Canvas c,String s,float x,float y,float size,int color){paint(color,false,0);p.setTextSize(size);p.setTypeface(font);p.setTextAlign(Paint.Align.CENTER);c.drawText(s,x,y,p);}
+    private void text(Canvas c,String s,float x,float y,float size,int color){paint(color,false,0);p.setTextSize(size);p.setTypeface(font);p.setTextAlign(Paint.Align.CENTER);c.drawText(L10n.t(s),x,y,p);}   // UI labels translate; app names have no entry and stay
     private void alpha(Canvas c,float f){c.saveLayerAlpha(0,0,240,500,Math.round(255*clamp(f)));}
     private void touch(Canvas c,float x,float y,float t,float start,float length){float f=(t-start)/length;if(f<0||f>1)return;float old=opacity;opacity*=1-f;paint(accent,true,2.5f);c.drawCircle(x,y,8+12*f,p);circle(c,x,y,4,accent);opacity=old;}
     private void pill(Canvas c,float alpha){float old=opacity;opacity*=alpha;box(c,96,486,48,4,2,ink);opacity=old;}

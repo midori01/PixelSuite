@@ -813,7 +813,7 @@ final class LauncherFeatures {
         final LinearLayout footer = (LinearLayout) get(folder, "mFooter");
         if (footer.findViewWithTag("pixelsuite_folder_menu") != null) return;
         final TextView menu = new TextView(footer.getContext()); menu.setText("\u22ee"); menu.setTextSize(24);
-        menu.setGravity(17); menu.setContentDescription("Folder options"); menu.setTag("pixelsuite_folder_menu");
+        menu.setGravity(17); menu.setContentDescription(L10n.t("Folder options")); menu.setTag("pixelsuite_folder_menu");
         footer.addView(menu, new LinearLayout.LayoutParams(dp(footer.getContext(),48), -1));
         menu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -884,17 +884,17 @@ final class LauncherFeatures {
     }
     static void appRows(final Object popup, final Object info, ViewGroup rows) {
         boolean drawer = type("model.data.AppInfo").isInstance(info);
-        if (drawer && on(DRAWER)) addMenuRow(rows, "Create folder", "pixelsuite_create", new View.OnClickListener() {
+        if (drawer && on(DRAWER)) addMenuRow(rows, L10n.t("Create folder"), "pixelsuite_create", new View.OnClickListener() {
             public void onClick(View v) { call(popup,"close",true); DrawerFolders.create(info); }
         }, true);
-        if (on(ICONS)) addMenuRow(rows, "Change icon", "pixelsuite_icon", new View.OnClickListener() {
+        if (on(ICONS)) addMenuRow(rows, L10n.t("Change icon"), "pixelsuite_icon", new View.OnClickListener() {
             public void onClick(View v) { call(popup,"close",true); LauncherIcon.choose(info, popup); }
         }, false);
-        if (on(RENAME)) addMenuRow(rows, "Rename", "pixelsuite_rename", new View.OnClickListener() {
+        if (on(RENAME)) addMenuRow(rows, L10n.t("Rename"), "pixelsuite_rename", new View.OnClickListener() {
             public void onClick(View v) { call(popup,"close",true); rename(info); }
         }, false);
         if (!drawer || !DrawerFolders.isFolder(info)) PrivacyLock.addRow(rows, popup, info);
-        if (BadgeClear.has(info)) addFolderRow(rows, "Clear badge", "pixelsuite_badge", 16, 0, new View.OnClickListener() {
+        if (BadgeClear.has(info)) addFolderRow(rows, L10n.t("Clear badge"), "pixelsuite_badge", 16, 0, new View.OnClickListener() {
             public void onClick(View v) { call(popup, "close", true); BadgeClear.clear(info); }
         });
     }
@@ -903,15 +903,15 @@ final class LauncherFeatures {
         if (rows == null) return;
         if (rows.findViewWithTag("pixelsuite_folder_rename") != null) return;
         ScatterEffect.arm(info);
-        addFolderRow(rows, "Rename", "pixelsuite_folder_rename", 1, 0, new View.OnClickListener() {
+        addFolderRow(rows, L10n.t("Rename"), "pixelsuite_folder_rename", 1, 0, new View.OnClickListener() {
             public void onClick(View v) { call(popup, "close", true); FolderSort.homeRename(info); }
         });
         final ViewGroup list = rows;
-        addFolderRow(rows, "Sort", "pixelsuite_folder_sort", 9, 1, new View.OnClickListener() {
+        addFolderRow(rows, L10n.t("Sort"), "pixelsuite_folder_sort", 9, 1, new View.OnClickListener() {
             public void onClick(View v) { toggleHomeSort(popup, list, v, info); }
         });
         PrivacyFolders.addHomeRow(rows, popup, info);
-        if (BadgeClear.has(info)) addFolderRow(rows, "Clear badge", "pixelsuite_badge", 16, 0, new View.OnClickListener() {
+        if (BadgeClear.has(info)) addFolderRow(rows, L10n.t("Clear badge"), "pixelsuite_badge", 16, 0, new View.OnClickListener() {
             public void onClick(View v) { call(popup, "close", true); BadgeClear.clear(info); }
         });
     }
@@ -921,20 +921,20 @@ final class LauncherFeatures {
         View auto = rows.findViewWithTag("pixelsuite_folder_sort_auto"), custom = rows.findViewWithTag("pixelsuite_folder_sort_custom");
         if (auto == null) {
             int mode = FolderSort.homeMode(info), at = rows.indexOfChild(sortRow) + 1;
-            addFolderRow(rows, "Auto (A\u2013Z)", "pixelsuite_folder_sort_auto", 13, at, new View.OnClickListener() {
+            addFolderRow(rows, L10n.t("Auto (A\u2013Z)"), "pixelsuite_folder_sort_auto", 13, at, new View.OnClickListener() {
                 public void onClick(View v) {
                     call(popup, "close", true); if (FolderSort.homeMode(info) == FolderSort.AUTO) return;
-                    DrawerFolderMenu.confirm("Sort apps?", "Sort the apps in this folder from A to Z?", new Runnable() { public void run() { FolderSort.sortHome(info); } });
+                    DrawerFolderMenu.confirm(L10n.t("Sort apps?"), L10n.t("Sort the apps in this folder from A to Z?"), new Runnable() { public void run() { FolderSort.sortHome(info); } });
                 }
             });
-            addFolderRow(rows, "Custom", "pixelsuite_folder_sort_custom", 14, at + 1, new View.OnClickListener() {
+            addFolderRow(rows, L10n.t("Custom"), "pixelsuite_folder_sort_custom", 14, at + 1, new View.OnClickListener() {
                 public void onClick(View v) { call(popup, "close", true); FolderSort.setHomeMode(info, FolderSort.CUSTOM); }
             });
             auto = rows.findViewWithTag("pixelsuite_folder_sort_auto"); custom = rows.findViewWithTag("pixelsuite_folder_sort_custom");
             for (View r : new View[] {auto, custom}) {
                 boolean checked = (r == auto) == (mode == FolderSort.AUTO);
                 TextView label = (TextView) get(r, "mBubbleText");
-                if (checked) { label.setText(label.getText() + "   \u2713"); r.setContentDescription(label.getText() + ", selected"); }
+                if (checked) { label.setText(label.getText() + "   \u2713"); r.setContentDescription(L10n.f("%s, selected", label.getText())); }
                 r.setPadding(r.getPaddingLeft() + FrostedSurface.dp(c, 14), r.getPaddingTop(), r.getPaddingRight(), r.getPaddingBottom());
                 r.getLayoutParams().height = 0; r.setAlpha(0f);
                 if (Xp.getAdditionalInstanceField(popup, "pixelsuite_panel") != null) FrostedSurface.clearRow(r);
@@ -1022,15 +1022,15 @@ final class LauncherFeatures {
         final Activity a = activity.get(); final String key = identity(info); if (a == null || key == null) return;
         final EditText edit = new EditText(a); edit.setSingleLine(true); edit.setText((CharSequence)get(info,"title")); edit.selectAll();
         edit.setPadding(dp(a,24),dp(a,16),dp(a,24),dp(a,16));
-        final AlertDialog dialog=new AlertDialog.Builder(a).setTitle("Rename app").setView(edit).setMessage("This name appears on the home screen, in folders, the app drawer and launcher search.")
-            .setNegativeButton("Cancel",null).setNeutralButton("Reset",new DialogInterface.OnClickListener() {
+        final AlertDialog dialog=new AlertDialog.Builder(a).setTitle(L10n.t("Rename app")).setView(edit).setMessage(L10n.t("This name appears on the home screen, in folders, the app drawer and launcher search."))
+            .setNegativeButton(L10n.t("Cancel"),null).setNeutralButton(L10n.t("Reset"),new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface d,int which) { data.rename(key,""); refresh(); }
-            }).setPositiveButton("Save",null).create();
+            }).setPositiveButton(L10n.t("Save"),null).create();
         FrostedSurface.show(dialog);dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener(){
                 public void onClick(View button) {
                     String value = edit.getText().toString().trim();
-                    if (value.length() == 0 || value.length() > 80) { edit.setError("Use a name between 1 and 80 characters"); return; }
-                    if (data.rename(key,value)) { dialog.dismiss();refresh(); } else Toast.makeText(a,"Could not save the name",0).show();
+                    if (value.length() == 0 || value.length() > 80) { edit.setError(L10n.t("Use a name between 1 and 80 characters")); return; }
+                    if (data.rename(key,value)) { dialog.dismiss();refresh(); } else Toast.makeText(a,L10n.t("Could not save the name"),0).show();
                 }
         });
     }

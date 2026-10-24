@@ -410,7 +410,7 @@ final class ClearAll {
                 return host.getResources().getString(s);
             } catch (Throwable ignored) { }
         }
-        return "Clear all";
+        return L10n.t("Clear all");
     }
 
     private static int id(View v, String name, String type) {

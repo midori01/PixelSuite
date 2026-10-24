@@ -472,13 +472,13 @@ final class MultiDrag {
             call(writer, "addItemToDatabase", item, -100, screenId, cell[0], cell[1]);
             items.add(item); placed.add(p);
         }
-        if (items.isEmpty()) { if (moving.size() > 0) toast(a, "No room on this page for the other apps"); return; }
+        if (items.isEmpty()) { if (moving.size() > 0) toast(a, L10n.t("No room on this page for the other apps")); return; }
         try { call(get(a, "modelCallbacks"), "bindItems", items, true); }
         catch (Throwable noBindItems) {
             for (Object item : items) { View view = (View) call(a, "createShortcut", item); call(workspace, "addInScreenFromBind", view, item); }
         }
         removeOriginals(a, placed);
-        if (placed.size() < moving.size()) toast(a, (moving.size() - placed.size()) + " apps did not fit on this page");
+        if (placed.size() < moving.size()) toast(a, L10n.f("%d apps did not fit on this page", moving.size() - placed.size()));
     }
 
     private static void removeOriginals(final Activity a, List<Pick> list) {

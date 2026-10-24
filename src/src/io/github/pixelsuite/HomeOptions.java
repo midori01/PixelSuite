@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class HomeOptions {
-    static final String LABEL = "Pixel Suite settings";
+    static final String LABEL = L10n.t("Pixel Suite settings");
     static final String PACKAGE = "io.github.roviandev.pixelsuite";
     static final String ACTIVITY = "io.github.pixelsuite.SettingsActivity";
 
@@ -289,7 +289,7 @@ final class HomeOptions {
         try { options = ActivityOptions.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight()).toBundle(); } catch (Throwable ignored) { }
         try { c.startActivity(intent, options); }
         catch (Throwable error) {
-            Toast.makeText(c, "Pixel Suite isn't available", Toast.LENGTH_SHORT).show();
+            Toast.makeText(c, L10n.t("Pixel Suite isn't available"), Toast.LENGTH_SHORT).show();
         }
     }
 

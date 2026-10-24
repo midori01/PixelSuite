@@ -568,7 +568,7 @@ final class PrivacyLock {
             final String pkg = ((ComponentName) component).getPackageName();
             if (pkg == null || OUR.equals(pkg) || pkg.equals(rows.getContext().getPackageName()) || "com.android.systemui".equals(pkg)) return;
             final boolean isLocked = lockedNow(rows.getContext()).contains(pkg);
-            String title = isLocked ? "Unlock app" : "Lock app";
+            String title = isLocked ? L10n.t("Unlock app") : L10n.t("Lock app");
             LauncherFeatures.addMenuRow(rows, title, "pixelsuite_privacy", new View.OnClickListener() {
                 public void onClick(View v) {
                     LauncherFeatures.call(popup, "close", true);

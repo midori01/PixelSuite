@@ -119,8 +119,8 @@ final class RestartPill {
         refreshPalette();
         if(activity.isFinishing()||activity.isDestroyed())return;
         main.removeCallbacks(clearNotice);
-        android.text.SpannableString message=new android.text.SpannableString("Super Dark-Mode uses its own black style.\nTurn it off to change styles.");
-        message.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),0,"Super Dark-Mode".length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);notice.setText(message);
+        android.text.SpannableString message=new android.text.SpannableString(L10n.t("Super Dark-Mode uses its own black style.\nTurn it off to change styles."));
+        message.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),0,L10n.t("Super Dark-Mode").length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);notice.setText(message);
         if(pill.getVisibility()==View.VISIBLE)pill.setVisibility(View.INVISIBLE);
         boolean already=notice.getVisibility()==View.VISIBLE;
         stopNoticeAnimation();notice.setAlpha(1f);notice.setVisibility(View.VISIBLE);notice.requestApplyInsets();notice.setScaleX(1);notice.setScaleY(1);notice.setTranslationY(0);
@@ -143,10 +143,10 @@ final class RestartPill {
         if (busy) return;
         if(showingDone)return;
         String text;
-        if(applyAction!=null){if(!applyDirty){hide(true);return;}text="Apply";}
+        if(applyAction!=null){if(!applyDirty){hide(true);return;}text=L10n.t("Apply");}
         else synchronized (pending) {
             if (pending.isEmpty()) { hide(false); return; }
-            text = pending.size() == 1 ? "Restart " + pending.values().iterator().next() : "Restart " + pending.size() + " apps";
+            text = pending.size() == 1 ? L10n.f("Restart %s", pending.values().iterator().next()) : L10n.f("Restart %d apps", pending.size());
         }
         main.removeCallbacks(finishDone);
         pill.animate().withEndAction(null);pill.animate().cancel();pill.setAlpha(1f);pill.setScaleX(1f);pill.setScaleY(1f);pill.setTranslationY(0);label.animate().cancel();label.setAlpha(1f);label.setTranslationY(0);
@@ -154,7 +154,7 @@ final class RestartPill {
         LinearLayout.LayoutParams textSize=(LinearLayout.LayoutParams)label.getLayoutParams();textSize.width=ViewGroup.LayoutParams.WRAP_CONTENT;textSize.weight=0;label.setLayoutParams(textSize);
         label.setText(text);status.show(0);
         if(applyAction!=null)pill.setMinimumWidth(dp(activity.getResources().getDisplayMetrics().density,168));
-        pill.setContentDescription(applyAction==null?text + ". Applies your changes. Long-press to hide.":"Apply update blocking choices");
+        pill.setContentDescription(applyAction==null?L10n.f("%s. Applies your changes. Long-press to hide.", text):L10n.t("Apply update blocking choices"));
         if(notice.getVisibility()==View.VISIBLE){pill.setVisibility(View.INVISIBLE);return;}
         if (pill.getVisibility() == View.VISIBLE) return;
         pill.setVisibility(View.VISIBLE);
@@ -186,16 +186,16 @@ final class RestartPill {
         busy = true;showingDone=false;main.removeCallbacks(finishDone);
         ViewGroup.LayoutParams width=pill.getLayoutParams();width.width=pill.getWidth();pill.setLayoutParams(width);
         LinearLayout.LayoutParams textSize=(LinearLayout.LayoutParams)label.getLayoutParams();textSize.width=ViewGroup.LayoutParams.WRAP_CONTENT;textSize.weight=0;label.setLayoutParams(textSize);label.setGravity(Gravity.CENTER);
-        status.setActive(pill.hasWindowFocus());status.show(1);changeLabel("Restarting…");
+        status.setActive(pill.hasWindowFocus());status.show(1);changeLabel(L10n.t("Restarting…"));
         final long started=android.os.SystemClock.uptimeMillis();
         IO.execute(new Runnable() { public void run() {
             final boolean ok = Root.run(command) != null;
             main.postDelayed(new Runnable() { public void run() {
                 busy = false;
                 if (activity.isFinishing() || activity.isDestroyed()) return;
-                if (!ok) { refresh(); AppToast.makeText(activity, "Couldn't restart: root access needed", Toast.LENGTH_SHORT).show(); return; }
+                if (!ok) { refresh(); AppToast.makeText(activity, L10n.t("Couldn't restart: root access needed"), Toast.LENGTH_SHORT).show(); return; }
                 synchronized (pending) { pending.clear(); }
-                showingDone=true;status.show(2);changeLabel("Done");
+                showingDone=true;status.show(2);changeLabel(L10n.t("Done"));
                 main.postDelayed(finishDone,1100);
             }},Math.max(0,650-(android.os.SystemClock.uptimeMillis()-started)));
         }});
@@ -206,10 +206,10 @@ final class RestartPill {
     void applying(){
         busy=true;showingDone=false;main.removeCallbacks(finishDone);
         ViewGroup.LayoutParams size=pill.getLayoutParams();size.width=Math.max(pill.getWidth(),dp(activity.getResources().getDisplayMetrics().density,168));pill.setLayoutParams(size);
-        status.setActive(pill.hasWindowFocus());status.show(1);changeLabel("Applying…");
+        status.setActive(pill.hasWindowFocus());status.show(1);changeLabel(L10n.t("Applying…"));
     }
-    void applied(){busy=false;applyDirty=false;showingDone=true;status.show(2);changeLabel("Done");main.postDelayed(finishDone,1100);}
-    void applyFailed(){busy=false;showingDone=false;refresh();AppToast.makeText(activity,"Couldn't apply: root access needed",Toast.LENGTH_SHORT).show();}
+    void applied(){busy=false;applyDirty=false;showingDone=true;status.show(2);changeLabel(L10n.t("Done"));main.postDelayed(finishDone,1100);}
+    void applyFailed(){busy=false;showingDone=false;refresh();AppToast.makeText(activity,L10n.t("Couldn't apply: root access needed"),Toast.LENGTH_SHORT).show();}
 
     private void changeLabel(final String text){
         pill.setContentDescription(text);
