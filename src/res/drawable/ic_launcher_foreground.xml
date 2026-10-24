@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The grid of ic_launcher's 48 viewport, scaled so it keeps its size relative to the circle: the 44 circle becomes the 72 visible area of 108. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="1.6364" android:scaleY="1.6364" android:translateX="14.727" android:translateY="14.727">
+        <path android:fillColor="#FFFFFFFF" android:pathData="M14,13 h8 v8 h-8 z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M26,13 h8 v8 h-8 z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M14,25 h8 v8 h-8 z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M26,25 h8 v8 h-8 z" />
+    </group>
+</vector>
