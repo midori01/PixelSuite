@@ -162,6 +162,19 @@ final class LauncherFeatures {
         });
     }
     static Object get(Object o, String name) { return Xp.getObjectField(o, name); }
+    /** DeviceProfile parts by their old name ("mFolderProfile"); Android 17 QPR3 beta drops the m (folderProfile). */
+    private static final java.util.Map<String,String> partNames=new java.util.concurrent.ConcurrentHashMap<String,String>();
+    static String partName(Object deviceProfile,String name){
+        String key=deviceProfile.getClass().getName()+"#"+name,found=partNames.get(key);
+        if(found==null){
+            found=name;
+            try{Xp.getObjectField(deviceProfile,name);}catch(Throwable qpr3){found=Character.toLowerCase(name.charAt(1))+name.substring(2);}
+            partNames.put(key,found);
+        }
+        return found;
+    }
+    static Object part(Object deviceProfile,String name){return get(deviceProfile,partName(deviceProfile,name));}
+    static void setPart(Object deviceProfile,String name,Object value){set(deviceProfile,partName(deviceProfile,name),value);}
     static void set(Object o, String name, Object v) { Xp.setObjectField(o, name, v); }
     static Object call(Object o, String name, Object... args) { return Xp.callMethod(o, name, args); }
     static String identity(Object info) {
@@ -279,7 +292,7 @@ final class LauncherFeatures {
                 if(gridFor(get(p.thisObject,"mInfo"))<=3)return;
                 Activity a=activity.get();if(a==null)return;
                 Object profile=call(a,"getDeviceProfile");
-                Object nativeFolder=get(profile,"mFolderProfile");
+                Object nativeFolder=part(profile,"mFolderProfile");
                 int top=((Number)get(nativeFolder,"contentPaddingTop")).intValue();
                 p.setResult(folderContentLimit(profile,nativeFolder,a,get(p.thisObject,"mInfo"))+top);
             }
@@ -333,11 +346,11 @@ final class LauncherFeatures {
                     Object info = folder == null ? null : get(folder, "mInfo");
                     int n = gridFor(info);
                     if (n == 0) {
-                        try{Activity a=activity.get();if(a!=null&&paged instanceof ViewGroup)applyChrome((ViewGroup)paged,get(call(a,"getDeviceProfile"),"mFolderProfile"));}catch(Throwable ignored){}
+                        try{Activity a=activity.get();if(a!=null&&paged instanceof ViewGroup)applyChrome((ViewGroup)paged,part(call(a,"getDeviceProfile"),"mFolderProfile"));}catch(Throwable ignored){}
                         return chain.proceed();
                     }
                     Activity a = activity.get(); Object profile = call(a, "getDeviceProfile");
-                    Object old = get(profile, "mFolderProfile"); Object fitted = fittedProfile(old, n, a, info, folder instanceof View ? (View) folder : null);
+                    Object old = part(profile,"mFolderProfile"); Object fitted = fittedProfile(old, n, a, info, folder instanceof View ? (View) folder : null);
                     if (paged instanceof ViewGroup) applyChrome((ViewGroup) paged, fitted);
                     if (paged instanceof ViewGroup) {
                         ViewGroup pages = (ViewGroup) paged;
@@ -348,7 +361,7 @@ final class LauncherFeatures {
                             Object children = get(page,"mShortcutsAndWidgets");set(children,"mCellWidth",w);set(children,"mCellHeight",h);
                         }
                     }
-                    Integer previous = activeGrid.get(); activeGrid.set(n); set(profile, "mFolderProfile", fitted);
+                    Integer previous = activeGrid.get(); activeGrid.set(n); setPart(profile,"mFolderProfile", fitted);
                     try {
                         if(m.getName().equals("arrangeChildren"))for(Object child:(List<?>)chain.getArgs().get(0))if(child instanceof View)fitFolderIcons((View)child,fitted);
                         Object result=chain.proceed();
@@ -357,7 +370,7 @@ final class LauncherFeatures {
                         if(paged instanceof ViewGroup)applyChrome((ViewGroup)paged,fitted);
                         return result;
                     }
-                    finally { set(profile, "mFolderProfile", old); if (previous == null) activeGrid.remove(); else activeGrid.set(previous); }
+                    finally { setPart(profile,"mFolderProfile", old); if (previous == null) activeGrid.remove(); else activeGrid.set(previous); }
                 }
             });
         }
@@ -435,14 +448,14 @@ final class LauncherFeatures {
                     Integer previousColors=activeFolderColors.get();Object folderBackground=get(get(chain.getThisObject(),"folder"),"mBackground");int color=FrostedSurface.colors(((View)get(chain.getThisObject(),"folder")).getContext())[0];if(folderBackground instanceof BackdropSurface&&(!((BackdropSurface)folderBackground).allowed||((BackdropSurface)folderBackground).failed))color|=0xff000000;
                     activeFolderColors.set(frosted()?color:(FrostedSurface.colors(((View)get(chain.getThisObject(),"folder")).getContext())[0]|0xff000000));
                     if (n == 0) {try{return chain.proceed();}finally{if(previousColors==null)activeFolderColors.remove();else activeFolderColors.set(previousColors);}}
-                    Activity a = activity.get(); Object profile = call(a, "getDeviceProfile"); Object old = get(profile,"mFolderProfile");
+                    Activity a = activity.get(); Object profile = call(a, "getDeviceProfile"); Object old = part(profile,"mFolderProfile");
                     Object animated = get(chain.getThisObject(),"folder");
-                    Integer previous = activeGrid.get(); activeGrid.set(n); set(profile,"mFolderProfile",fittedProfile(old,n,a,get(animated,"mInfo"),animated instanceof View?(View)animated:null));
+                    Integer previous = activeGrid.get(); activeGrid.set(n); setPart(profile,"mFolderProfile",fittedProfile(old,n,a,get(animated,"mInfo"),animated instanceof View?(View)animated:null));
                     try {
                         Object result=chain.proceed();
                         return result;
                     }
-                    finally { set(profile,"mFolderProfile",old); if(previous==null)activeGrid.remove();else activeGrid.set(previous);if(previousColors==null)activeFolderColors.remove();else activeFolderColors.set(previousColors); }
+                    finally { setPart(profile,"mFolderProfile",old); if(previous==null)activeGrid.remove();else activeGrid.set(previous);if(previousColors==null)activeFolderColors.remove();else activeFolderColors.set(previousColors); }
                     }finally{if(previousPreview==null)activePreviewColor.remove();else activePreviewColor.set(previousPreview);}
                 }
             });
@@ -648,7 +661,7 @@ final class LauncherFeatures {
             Object nativePad=Xp.getAdditionalInstanceField(paged,"pixelsuite_native_pad");
             if(nativePad==null){nativePad=new int[]{paged.getPaddingLeft(),paged.getPaddingRight()};Xp.setAdditionalInstanceField(paged,"pixelsuite_native_pad",nativePad);}
             int[] stock=(int[])nativePad;
-            Activity a=activity.get();Object stockProfile=a==null?null:get(call(a,"getDeviceProfile"),"mFolderProfile");
+            Activity a=activity.get();Object stockProfile=a==null?null:part(call(a,"getDeviceProfile"),"mFolderProfile");
             int stockPad=stockProfile==null?-1:((Number)get(stockProfile,"contentPaddingLeftRight")).intValue();
             if(stock[0]==stockPad&&stock[1]==stockPad){
                 int pad=((Number)get(profile,"contentPaddingLeftRight")).intValue();
@@ -676,7 +689,7 @@ final class LauncherFeatures {
             ViewGroup paged=(ViewGroup)content;
             Object nativePad=Xp.getAdditionalInstanceField(paged,"pixelsuite_native_pad");
             int left=nativePad instanceof int[]?((int[])nativePad)[0]:paged.getPaddingLeft(),right=nativePad instanceof int[]?((int[])nativePad)[1]:paged.getPaddingRight();
-            Object stockProfile=get(call(a,"getDeviceProfile"),"mFolderProfile");
+            Object stockProfile=part(call(a,"getDeviceProfile"),"mFolderProfile");
             int stockPad=((Number)get(stockProfile,"contentPaddingLeftRight")).intValue();
             chrome+=left==stockPad&&right==stockPad?2*pad:left+right;
             if(paged.getChildCount()>0){View page=paged.getChildAt(0);chrome+=page.getPaddingLeft()+page.getPaddingRight();}
@@ -688,7 +701,7 @@ final class LauncherFeatures {
         int width = a.getResources().getDisplayMetrics().widthPixels;
         int height = a.getResources().getDisplayMetrics().heightPixels;
         Object profile=call(a,"getDeviceProfile");
-        Object device=get(profile,"mDeviceProperties");
+        Object device=part(profile,"mDeviceProperties");
         width=Math.min(width,((Number)get(device,"availableWidthPx")).intValue());
         height=Math.min(height,((Number)get(device,"availableHeightPx")).intValue());
         int pad = ((Number) get(old, "contentPaddingLeftRight")).intValue();
@@ -749,12 +762,23 @@ final class LauncherFeatures {
             if(cut>0)cellHeight=Math.max(needed,cellHeight-(cut+n-1)/n);
             border.x=Math.round(border.x*FOLDER_4X4_COLUMN_GAP);
         }
-        return Xp.newInstance(old.getClass(), get(old,"labelTextSizePx"), icon,
+        Object[] values={get(old,"labelTextSizePx"), icon,
                 text, labelLines,
                 fittedPadding, new Point(border), pad, get(old,"contentPaddingTop"),
                 get(old,"footerHeightPx"), cellWidth, cellHeight, get(old,"labelTextScale"), n, n,
-                get(old,"folderIconSizePx"), get(old,"folderIconOffsetYPx"));
+                get(old,"folderIconSizePx"), get(old,"folderIconOffsetYPx")};
+        try{return Xp.newInstance(old.getClass(),values);}
+        catch(Throwable qpr3){
+            // Android 17 QPR3 beta: FolderProfile has only a no-argument constructor; its fields are set one by one.
+            Object fitted=Xp.newInstance(old.getClass());
+            for(int i=0;i<FOLDER_PROFILE_FIELDS.length;i++)set(fitted,FOLDER_PROFILE_FIELDS[i],values[i]);
+            return fitted;
+        }
     }
+    /** FolderProfile's fields in its constructor's order. */
+    private static final String[] FOLDER_PROFILE_FIELDS={"labelTextSizePx","childIconSizePx","childTextSizePx","maxChildTextLineCount",
+            "childDrawablePaddingPx","cellLayoutBorderSpacePx","contentPaddingLeftRight","contentPaddingTop","footerHeightPx",
+            "cellWidthPx","cellHeightPx","labelTextScale","numRows","numColumns","folderIconSizePx","folderIconOffsetYPx"};
     static int labelHeight(int textPx,int lines){
         Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setTextSize(textPx);
         if(labelTypeface!=null)paint.setTypeface(labelTypeface);
@@ -766,7 +790,7 @@ final class LauncherFeatures {
         return dp(a,12+48*rows)+2*dp(a,12);
     }
     static int folderContentLimit(Object profile,Object folderProfile,Activity a,Object info){
-        int available=((Number)get(get(profile,"mDeviceProperties"),"availableHeightPx")).intValue();
+        int available=((Number)get(part(profile,"mDeviceProperties"),"availableHeightPx")).intValue();
         ViewGroup drag=(ViewGroup)call(a,"getDragLayer");
         android.graphics.Rect insets=(android.graphics.Rect)call(drag,"getInsets");
         if(drag.getHeight()>0)available=Math.min(available,drag.getHeight()-insets.top-insets.bottom);

@@ -820,7 +820,7 @@ final class IconEditor {
     static int launcherIconSize(Activity a) {
         try {
             Object profile = Xp.callMethod(a, "getDeviceProfile");
-            Object workspace = Xp.callMethod(profile, "getWorkspaceProfile");
+            Object workspace = LauncherFeatures.part(profile, "mWorkspaceProfile");
             int s = ((Number) Xp.getObjectField(workspace, "iconSizePx")).intValue();
             if (s > 0) return s;
         } catch (Throwable ignored) { }

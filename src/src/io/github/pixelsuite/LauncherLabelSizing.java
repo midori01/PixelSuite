@@ -8,10 +8,10 @@ final class LauncherLabelSizing {
             if (Boolean.TRUE.equals(Xp.getAdditionalInstanceField(view,"pixelsuite_drawer_folder_label"))) return;
             if (Boolean.TRUE.equals(Xp.getAdditionalInstanceField(view,"pixelsuite_two_line_cell"))) return;
             int display=((Number)LauncherFeatures.get(view,"mDisplay")).intValue();
-            String area=display==0?"mWorkspaceProfile":(display==1||display==8||display==9)?"mAllAppsProfile":null;
-            if(area==null)return;
             Object profile=LauncherFeatures.get(view,"mDeviceProfile");
-            float nativeSize=((Number)LauncherFeatures.get(LauncherFeatures.get(profile,area),"iconTextSizePx")).floatValue();
+            Object area=display==0?LauncherFeatures.part(profile,"mWorkspaceProfile"):(display==1||display==8||display==9)?LauncherFeatures.part(profile,"mAllAppsProfile"):null;
+            if(area==null)return;
+            float nativeSize=((Number)LauncherFeatures.get(area,"iconTextSizePx")).floatValue();
             boolean enabled=LauncherFeatures.on(LauncherFeatures.LABEL_SIZE);
             float size=nativeSize*(enabled?IconLabelScale.factor(LauncherFeatures.labelLevel):1f);
             if(Math.abs(view.getTextSize()-size)>.1f)view.setTextSize(0,size);

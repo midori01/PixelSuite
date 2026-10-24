@@ -180,7 +180,7 @@ final class DrawerFolders {
                     Xp.setAdditionalInstanceField(frame,"pixelsuite_native_app_cell",nativeCell);
                     frame.setClipChildren(false); frame.setClipToPadding(false);
                     Object profile=call(get(chain.getThisObject(),"mActivityContext"),"getDeviceProfile");
-                    int height=((Number)get(get(profile,"mAllAppsProfile"),"cellHeightPx")).intValue();
+                    int height=((Number)get(LauncherFeatures.part(profile,"mAllAppsProfile"),"cellHeightPx")).intValue();
                     frame.setLayoutParams(new ViewGroup.LayoutParams(-1,height));
                     set(holder,"itemView",frame); return holder;
                 }
@@ -616,7 +616,7 @@ final class DrawerFolders {
     static void refreshDots(){for(Object[] hit:new ArrayList<Object[]>(iconCache.values()))if(hit!=null&&hit[1] instanceof View)dots((View)hit[1]);}
     static void bindFolder(final FrameLayout frame,Context context,int id){
         Object profile=call(context,"getDeviceProfile");
-        int height=((Number)get(get(profile,"mAllAppsProfile"),"cellHeightPx")).intValue();
+        int height=((Number)get(LauncherFeatures.part(profile,"mAllAppsProfile"),"cellHeightPx")).intValue();
         ViewGroup.LayoutParams params=frame.getLayoutParams();
         if(params!=null && params.height!=height){params.height=height;frame.setLayoutParams(params);}
         LauncherData.Folder f=null;for(LauncherData.Folder item:LauncherFeatures.data.folders())if(item.id==id){f=item;break;}
