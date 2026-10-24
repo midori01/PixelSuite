@@ -154,19 +154,24 @@ final class ScatterEffect {
 
     static void install() {
         try {
-            Xp.hookAllMethods(LauncherFeatures.type("Launcher"), "removeItem", new Xp.Callback() {
+            Xp.Callback remove = new Xp.Callback() {
                 protected void beforeHookedMethod(Xp.Param p) {
                     try {
-                        if (p.args.length < 2 || !(p.args[0] instanceof View)) return;
-                        Object info = p.args[1];
+                        // Launcher.removeItem(view, info, ...); Android 17 QPR3 beta: ItemDeleteHandler.removeItem(info, ...)
+                        boolean withView = p.args.length >= 2 && p.args[0] instanceof View;
+                        Object info = withView ? p.args[1] : p.args.length > 0 ? p.args[0] : null;
                         if (info == null || info != armedFolder || android.os.SystemClock.uptimeMillis() - armedAt > 30000) return;
                         armedFolder = null;
                         Activity a = LauncherFeatures.activity.get();
                         if (a != null && FolderDrag.dragging(a)) return;
-                        play((View) p.args[0]);
+                        Object view = withView ? p.args[0] : a == null ? null
+                            : Xp.callMethod(LauncherFeatures.get(a, "mWorkspace"), "getViewByItemId", ((Number) LauncherFeatures.get(info, "id")).intValue());
+                        if (view instanceof View) play((View) view);
                     } catch (Throwable error) { }
                 }
-            });
+            };
+            java.util.Set<?> hooks = Xp.hookAllMethods(LauncherFeatures.type("Launcher"), "removeItem", remove);
+            if (hooks.isEmpty()) hooks = Xp.hookAllMethods(LauncherFeatures.type("dragndrop.ItemDeleteHandler"), "removeItem", remove);
         } catch (Throwable error) { }
     }
 }

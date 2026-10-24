@@ -509,6 +509,13 @@ final class MultiDrag {
         } });
     }
 
+    /** Launcher.removeItem; Android 17 QPR3 beta has ItemDeleteHandler.removeItem(info, deleteFromDb, reason) instead. */
+    private static void removeItem(Activity a, View view, Object info) {
+        try { call(a, "removeItem", view, info, true, "Pixel Suite: moved with other apps"); return; } catch (Throwable fourArgs) { }
+        try { call(a, "removeItem", view, info, true); return; } catch (Throwable qpr3) { }
+        call(call(call(a, "getActivityComponent"), "getItemDeleteHandler"), "removeItem", info, true, "Pixel Suite: moved with other apps");
+    }
+
     private static void removeNow(Activity a, List<Pick> todo) throws Exception {
         java.util.LinkedHashMap<Integer, List<Object>> byFolder = new java.util.LinkedHashMap<Integer, List<Object>>();
         for (Pick p : todo) {
@@ -516,8 +523,7 @@ final class MultiDrag {
             if (container >= 0) { List<Object> l = byFolder.get(container); if (l == null) byFolder.put(container, l = new ArrayList<Object>()); l.add(p.info); continue; }
             View view = p.view != null && p.view.isAttachedToWindow() && p.view.getTag() == p.info ? p.view : viewOf(a.getWindow().getDecorView(), p.info);
             if (view == null) { continue; }
-            try { call(a, "removeItem", view, p.info, true, "Pixel Suite: moved with other apps"); }
-            catch (Throwable fourArgs) { call(a, "removeItem", view, p.info, true); }
+            removeItem(a, view, p.info);
         }
         for (java.util.Map.Entry<Integer, List<Object>> e : byFolder.entrySet()) {
             View icon = findFolderIcon(a.getWindow().getDecorView(), e.getKey());
@@ -529,8 +535,7 @@ final class MultiDrag {
             if (removing.isEmpty()) continue;
             int count = contents.size();
             if (removing.size() >= count) {
-                try { call(a, "removeItem", icon, info, true, "Pixel Suite: moved with other apps"); }
-                catch (Throwable fourArgs) { call(a, "removeItem", icon, info, true); }
+                removeItem(a, icon, info);
             } else HomeFolderApps.remove(a, folder, removing);
         }
     }
