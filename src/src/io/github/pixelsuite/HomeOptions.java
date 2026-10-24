@@ -11,8 +11,10 @@ import android.view.View;
 import android.widget.Toast;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,9 @@ final class HomeOptions {
                 protected void afterHookedMethod(Xp.Param p) { if (options.isInstance(p.thisObject) && Xp.getAdditionalInstanceField(p.thisObject, "pixelsuite_follow") == null) follow((View) p.thisObject); }
             });
         } catch (Throwable error) { }
-        Class<?> popup = LauncherFeatures.type("views.OptionsPopupView");
+        Class<?> popup;
+        try { popup = LauncherFeatures.type("views.OptionsPopupView"); }
+        catch (Throwable qpr3) { installWorkspaceOptions(); return; }
         int hooks = 0;
         for (Method m : popup.getDeclaredMethods()) {
             if (!m.getName().equals("show") || !Modifier.isStatic(m.getModifiers())) continue;
@@ -83,6 +87,69 @@ final class HomeOptions {
             hooks++;
         }
         if (hooks == 0) installNexusBuilder();
+    }
+
+    /**
+     * Android 17 QPR3 beta has no OptionsPopupView: the home screen menu is a Compose list of PopupData from
+     * WorkspaceLongPressOptions.getAll. Ours goes in right after Home settings and Apps list is left out, as above.
+     */
+    static void installWorkspaceOptions() {
+        Xp.hookAllMethods(LauncherFeatures.type("popup.WorkspaceLongPressOptions"), "getAll", new Xp.Callback() {
+            protected void afterHookedMethod(Xp.Param p) {
+                try { Object items = withSettingsData((Context) p.args[0], (List<?>) p.getResult()); if (items != null) p.setResult(items); }
+                catch (Throwable error) { }
+            }
+        });
+    }
+    /** The menu's PopupData with ours after Home settings, in a new list of the same type (the stock one is read-only). */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static Object withSettingsData(Context c, List<?> items) throws Exception {
+        if (items == null || items.isEmpty()) return null;
+        int home = c.getResources().getIdentifier("settings_button_text", "string", c.getPackageName());
+        int apps = c.getResources().getIdentifier("all_apps_button_label", "string", c.getPackageName());
+        List<Object> rows = new ArrayList<Object>(); int at = -1;
+        for (Object item : items) {
+            int res = labelRes(item);
+            if (res != 0 && res == apps) continue;
+            rows.add(item);
+            if (res != 0 && res == home) at = rows.size();
+        }
+        if (at < 0) return null;
+        Constructor<?> data = null;
+        for (Constructor<?> k : items.get(0).getClass().getConstructors()) {
+            Class<?>[] t = k.getParameterTypes();
+            if (t.length == 7 && t[2].getName().endsWith("StringContainer")) data = k;
+        }
+        if (data == null) throw new NoSuchMethodException("PopupData(id, icon, StringContainer, PopupCategory, EventEnum, String, Function3)");
+        Class<?>[] t = data.getParameterTypes();
+        int icon = c.getResources().getIdentifier("ic_setting_hollow", "drawable", c.getPackageName());
+        if (icon == 0) icon = c.getResources().getIdentifier("ic_setting", "drawable", c.getPackageName());
+        if (icon == 0) throw new IllegalStateException("No settings icon");
+        Object label = Xp.newInstance(LauncherFeatures.type("popup.ui.StringContainer$FixedString"), LABEL);
+        Object event = LauncherFeatures.type("logging.StatsLogManager$LauncherEvent").getField("IGNORE").get(null);
+        Object action = Proxy.newProxyInstance(t[6].getClassLoader(), new Class<?>[]{t[6]}, new InvocationHandler() {
+            public Object invoke(Object proxy, Method method, Object[] args) {
+                if (method.getDeclaringClass() == Object.class) {
+                    if (method.getName().equals("equals")) return proxy == args[0];
+                    if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
+                    return "PixelSuite:" + LABEL;
+                }
+                View v = args != null && args.length > 2 && args[2] instanceof View ? (View) args[2] : null;
+                Activity a = LauncherFeatures.activity.get();
+                if (v == null && a != null) v = a.getWindow().getDecorView();
+                if (v != null) open(v);
+                return null;
+            }
+        });
+        rows.add(at, data.newInstance(0x5053, icon, label, Enum.valueOf((Class) t[3], "SYSTEM_SHORTCUT"), event, "", action));
+        List<Object> copy = (List<Object>) Xp.newInstance(items.getClass(), rows.size());
+        copy.addAll(rows);
+        return copy;
+    }
+    /** A PopupData's label string resource, or 0 for fixed text. */
+    static int labelRes(Object data) {
+        try { return ((Number) LauncherFeatures.get(LauncherFeatures.get(data, "label"), "resId")).intValue(); }
+        catch (Throwable fixedText) { return 0; }
     }
 
     private static java.lang.reflect.Field sPopupField;
