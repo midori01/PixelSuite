@@ -756,12 +756,23 @@ final class LauncherFeatures {
             if(cut>0)cellHeight=Math.max(needed,cellHeight-(cut+n-1)/n);
             border.x=Math.round(border.x*FOLDER_4X4_COLUMN_GAP);
         }
-        return Xp.newInstance(old.getClass(), get(old,"labelTextSizePx"), icon,
+        Object[] values={get(old,"labelTextSizePx"), icon,
                 text, labelLines,
                 fittedPadding, new Point(border), pad, get(old,"contentPaddingTop"),
                 get(old,"footerHeightPx"), cellWidth, cellHeight, get(old,"labelTextScale"), n, n,
-                get(old,"folderIconSizePx"), get(old,"folderIconOffsetYPx"));
+                get(old,"folderIconSizePx"), get(old,"folderIconOffsetYPx")};
+        try{return Xp.newInstance(old.getClass(),values);}
+        catch(Throwable qpr3){
+            // Android 17 QPR3 beta: FolderProfile has only a no-argument constructor; its fields are set one by one.
+            Object fitted=Xp.newInstance(old.getClass());
+            for(int i=0;i<FOLDER_PROFILE_FIELDS.length;i++)set(fitted,FOLDER_PROFILE_FIELDS[i],values[i]);
+            return fitted;
+        }
     }
+    /** FolderProfile's fields in its constructor's order. */
+    private static final String[] FOLDER_PROFILE_FIELDS={"labelTextSizePx","childIconSizePx","childTextSizePx","maxChildTextLineCount",
+            "childDrawablePaddingPx","cellLayoutBorderSpacePx","contentPaddingLeftRight","contentPaddingTop","footerHeightPx",
+            "cellWidthPx","cellHeightPx","labelTextScale","numRows","numColumns","folderIconSizePx","folderIconOffsetYPx"};
     static int labelHeight(int textPx,int lines){
         Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setTextSize(textPx);
         if(labelTypeface!=null)paint.setTypeface(labelTypeface);
