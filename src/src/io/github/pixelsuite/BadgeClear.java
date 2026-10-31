@@ -103,12 +103,18 @@ final class BadgeClear {
         return out;
     }
 
+    /** DotInfo.mNotificationKeys; Android 17 QPR3 beta drops the m (notificationKeys). */
+    static List<?> notificationKeys(Object dot) {
+        try { return (List<?>) LauncherFeatures.get(dot, "mNotificationKeys"); }
+        catch (Throwable qpr3) { return (List<?>) LauncherFeatures.get(dot, "notificationKeys"); }
+    }
+
     static boolean has(Object info) {
         try {
             Object l = listener.get();
             if (l instanceof Context && android.provider.Settings.Secure.getInt(((Context) l).getContentResolver(), "notification_badging", 1) == 0) return false;
             for (Object dot : dotInfos(info)) {
-                List<?> keys = (List<?>) LauncherFeatures.get(dot, "mNotificationKeys");
+                List<?> keys = notificationKeys(dot);
                 if (keys != null && !keys.isEmpty()) return true;
             }
         } catch (Throwable ignored) { }
@@ -119,7 +125,7 @@ final class BadgeClear {
         final Object l = listener.get(); if (l == null) return;
         final List<String> keys = new ArrayList<String>();
         for (Object dot : dotInfos(info)) {
-            try { for (Object k : new ArrayList<Object>((List<?>) LauncherFeatures.get(dot, "mNotificationKeys"))) { String key = (String) LauncherFeatures.get(k, "notificationKey"); if (key != null) keys.add(key); } } catch (Throwable ignored) { }
+            try { for (Object k : new ArrayList<Object>(notificationKeys(dot))) { String key = (String) LauncherFeatures.get(k, "notificationKey"); if (key != null) keys.add(key); } } catch (Throwable ignored) { }
         }
         if (keys.isEmpty()) return;
         load();
@@ -133,7 +139,7 @@ final class BadgeClear {
                 if (map != null) {
                     List<Object> empty = new ArrayList<Object>();
                     for (Map.Entry<?, ?> e : new ArrayList<Map.Entry<?, ?>>(map.entrySet())) {
-                        List<?> list = (List<?>) LauncherFeatures.get(e.getValue(), "mNotificationKeys");
+                        List<?> list = notificationKeys(e.getValue());
                         int removed = 0;
                         for (java.util.Iterator<?> it = list.iterator(); it.hasNext();) {
                             Object k = it.next(); String key = (String) LauncherFeatures.get(k, "notificationKey");
