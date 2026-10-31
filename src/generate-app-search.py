@@ -138,11 +138,6 @@ for m in re.finditer(r'new\s+(\w+)\(',body):
     texts=ui_strings(files[name])
     for page in pages_at(m.start()):
         if texts:add(page,titles[page], '\n'.join(dict.fromkeys(texts)))
-# Shared component strings are obtained from the actual invocation sites too.
-for name in ('PatronPaper','PatronAccount','EsimPurchase'):
-    if name not in files:continue
-    text=' '.join(ui_strings(files[name]))
-    add('pixel_watch' if name=='EsimPurchase' else 'google_apps',name.replace('PatronPaper','Read the quest').replace('PatronAccount','Patreon account').replace('EsimPurchase','Pixel watch eSIM purchase'),text,'ACTION',anchor='@'+name)
 # Helper methods used by a page contribute their UI strings to that page as well.
 for m in re.finditer(r'\b(buildUpdates|communityActions)\(page\)',body):
     name=m[1];definition=re.search(r'private void '+name+r'\([^)]*\)\s*\{',s)
@@ -155,8 +150,6 @@ for p in (root/'res/raw').glob('*changelog*'):
 # LSPosed setup stays on its settings pages; it is not a search result or a source of keywords.
 out=root/'res/raw/app_search.json';out.parent.mkdir(parents=True,exist_ok=True)
 for entry in entries:
-    if entry.get('anchor') == '@PatronAccount':
-        entry['keywords'] = (entry.get('keywords', '') + ' patreon sign in unlock').strip()
     page=entry['page'];trail=[];visited=set()
     while page and page not in visited:
         visited.add(page);trail.insert(0,titles.get(page,page));page=parents.get(page,'')

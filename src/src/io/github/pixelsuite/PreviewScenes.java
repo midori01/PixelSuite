@@ -31,12 +31,11 @@ final class PreviewScenes {
     private float opacity=1;
     private boolean customCycle,compact;
     void compact(boolean value){compact=value;}
-    private static final String[] CALL_SECONDS={"00:01","00:02","00:03","00:04","00:05","00:06"};
     void nextCycle(){customCycle=!customCycle;}
     private static final int BLUE=0xff4285f4,RED=0xffea4335,YELLOW=0xfffbbc05,GREEN=0xff34a853;
     private static final int[] DOCK={5,1,4,12};
     private static final int[] SHARE209={5,4,6};
-    private static final String[] STORE209={"Pixel Launcher","Photos","Example app"},PATRON209={"Call recording","Ad blocking","Watch eSIM"};
+    private static final String[] STORE209={"Pixel Launcher","Photos","Example app"};
     private static final String[] RECENTS_ACTIONS={"Screenshot","Select","Clear all"};
     private static final String[] FILE_NAMES={"Photo.jpg","Invoice.pdf","Voice note.m4a","Notes.docx","Archive.zip","Clip.mp4"};
     private static final String[] FILE_AGES={"Today 09:15","Oct 12, 10:20","Today 14:42","Oct 8, 08:10","Sep 30, 21:00","Yesterday 18:30"};
@@ -49,8 +48,7 @@ final class PreviewScenes {
         if("drawer_folder_move".equals(key)||"drawer_move_bottom".equals(key))return 5200;
         if("209_share_combined".equals(key))return 15000;
         if("209_store".equals(key))return 9000;
-        if("209_recording".equals(key))return 7600;
-        if(key.startsWith("209_"))return ("209_feed".equals(key)||"209_watch".equals(key))?5000:6000;
+        if(key.startsWith("209_"))return 6000;
         if("recents_landscape".equals(key))return 6000;
         if("privacy_combined".equals(key))return 10000;
         if("privacy_lock".equals(key)||"privacy_folder".equals(key))return 4500;
@@ -561,21 +559,6 @@ final class PreviewScenes {
         box(c,0,0,240,500,0,surface);
         if("209_share_combined".equals(key)){
             shareCombined(c,t);
-        }else if("209_recording".equals(key)){
-            float seconds=t*7.6f;boolean ended=seconds>=6f;int clock=Math.min(5,(int)seconds);
-            text(c,ended?"Call ended":"Phone",120,43,21,ink);circle(c,120,133,34,tint(surface,accent,.18f));text(c,"A",120,145,30,accent);text(c,"Alex",120,202,26,ink);text(c,CALL_SECONDS[clock],120,229,15,muted);
-            float recording=e(1f,1.18f,seconds)*(1-e(6f,6.16f,seconds));panel(c,53,267,134,49,24,tint(surface,accent,.18f));circle(c,78,291,8,seconds>=1f&&!ended?RED:muted);text(c,ended?"Recorded":seconds>=1f?"Recording":"Record",137,297,16,ink);touch(c,115,290,t,.115f,.025f);
-            for(int i=0;i<21;i++){float height=recording*(3+12*(float)Math.abs(Math.sin(i*.8+seconds*3)));line(c,39+i*8,350-height,39+i*8,350+height,accent);}
-            float saved=e(6.3f,6.8f,seconds);if(saved>0){alpha(c,saved);panel(c,14,387,212,71,18,tint(surface,accent,.14f));text(c,"Recording saved",120,413,16,ink);text(c,"Recordings / Calls",120,439,13,muted);c.restore();}
-            pill(c,1);
-        }else if("209_feed".equals(key)){
-            text(c,"Discover",120,43,23,ink);float remove=e(.3f,.56f,t);photo(c,14,76,212,104);text(c,"Today's stories",120,210,17,ink);
-            float h=130*(1-remove);if(h>1){alpha(c,1-remove);panel(c,14,238,212,h,14,tint(surface,accent,.13f));text(c,"Sponsored",120,273,16,muted);line(c,41,295,199,295,muted);line(c,41,314,167,314,muted);c.restore();}
-            float y=387-130*remove;photo(c,14,y,212,67);text(c,"More of your feed",120,y+94,15,ink);if(t>.7f){panel(c,40,445,160,30,15,tint(surface,accent,.13f));text(c,"No sponsored gaps",120,465,13,accent);}pill(c,1);
-        }else if("209_watch".equals(key)){
-            text(c,"Pixel watch",120,45,22,ink);text(c,"Mobile network",120,97,19,ink);float scan=e(.23f,.37f,t);
-            panel(c,15,127,210,58,18,tint(surface,accent,.13f));text(c,"Scan QR code",120,162,17,accent);touch(c,120,156,t,.14f,.1f);
-            if(scan>0){alpha(c,scan);outline(c,44,224,152,152,16,accent);for(int corner=0;corner<3;corner++){float x=corner==1?139:61,y=corner==2?319:241;outline(c,x,y,38,38,4,ink);box(c,x+10,y+10,18,18,2,ink);}for(int i=0;i<24;i++)if(i%3!=1)box(c,103+(i%6)*9,285+(i/6)*11,6,6,1,ink);float yy=232+132*e(.42f,.79f,t);line(c,51,yy,189,yy,accent);text(c,t>.86f?"Ready to activate":"Scan your carrier's code",120,418,15,t>.86f?accent:muted);c.restore();}pill(c,1);
         }else if("209_share".equals(key)){
             text(c,"Share",120,69,24,ink);photo(c,63,94,114,80);panel(c,0,203,240,297,24,tint(surface,ink,.045f));text(c,"Pinned apps",120,244,18,ink);
             float drag=e(.24f,.6f,t);for(int i=1;i<3;i++)app(c,SHARE209[i],mix(48+i*72,48+(i-1)*72,drag),300,36,true);
@@ -608,18 +591,6 @@ final class PreviewScenes {
             panel(c,14,dateY,212,51,14,tint(surface,ink,.05f));text(c,"Date & time",120,dateY+32,15,ink);
             panel(c,14,eraseY,212,51,14,tint(surface,ink,.05f));text(c,"Erase all data",120,eraseY+32,15,tint(ink,muted,reset));touch(c,120,eraseY+25,t,.58f,.07f);
             if(reset>0){float old=opacity;opacity*=reset;text(c,"Factory reset locked",120,440,14,accent);opacity=old;}pill(c,1);
-        }else if("209_chrome".equals(key)){
-            app(c,1,27,32,23,false);text(c,"Chrome",122,39,21,ink);panel(c,14,62,212,34,17,tint(surface,ink,.06f));text(c,"News article",120,84,13,muted);
-            text(c,"A clearer page",120,131,21,ink);photo(c,14,153,212,87);float cleared=e(.32f,.64f,t);
-            if(cleared<1){alpha(c,1-cleared);panel(c,16,254,208,96,14,tint(surface,accent,.11f));text(c,"Advertisement",120,284,14,muted);text(c,"Empty ad space",120,315,13,muted);c.restore();}
-            float body=371-96*cleared;for(int i=0;i<4;i++)line(c,19,body+i*17,220-i%2*29,body+i*17,muted);
-            if(t>.77f){float old=opacity;opacity*=e(.77f,.88f,t);panel(c,31,431,178,37,18,tint(surface,accent,.14f));text(c,"No empty ad boxes",120,455,14,accent);opacity=old;}pill(c,1);
-        }else if("209_google_news".equals(key)){
-            panel(c,17,19,24,27,4,tint(surface,accent,.2f));text(c,"N",29,38,17,accent);text(c,"Google News",132,39,20,ink);text(c,"For you",60,83,15,accent);text(c,"Headlines",179,83,15,muted);photo(c,14,102,212,103);text(c,"Today's top stories",120,233,18,ink);
-            for(int i=0;i<2;i++){float y=255+i*76;photo(c,15,y,64,61);line(c,91,y+13,223,y+13,muted);line(c,91,y+30,214,y+30,muted);line(c,91,y+47,185,y+47,muted);}touch(c,120,150,t,.09f,.07f);
-            float opened=e(.18f,.28f,t);if(opened>0){alpha(c,opened);box(c,0,0,240,500,0,surface);text(c,"‹",18,35,25,ink);text(c,"News article",112,34,16,ink);text(c,"Chrome",207,34,11,muted);line(c,13,57,227,57,tint(surface,muted,.2f));text(c,"Read the full story",120,104,20,ink);photo(c,14,125,212,87);
-                float cleared=e(.56f,.78f,t);if(cleared<1){float old=opacity;opacity*=1-cleared;panel(c,16,233,208,104,14,tint(surface,accent,.11f));text(c,"Advertisement",120,267,14,muted);text(c,"Scroll to continue",120,300,13,muted);opacity=old;}
-                float body=362-104*cleared;for(int i=0;i<4;i++)line(c,18,body+i*17,222-i%2*35,body+i*17,muted);if(t>.84f)text(c,"Cleaner articles in Chrome",120,449,13,accent);pill(c,1);c.restore();}
         }else if("209_do_not_annoy".equals(key)||"209_do_not_annoy_decline".equals(key)){
             text(c,"Do Not Annoy",120,64,22,ink);text(c,"5G",212,25,11,ink);text(c,"Connected",65,25,12,muted);
             float on=e(.14f,.25f,t);panel(c,14,102,212,66,18,tint(surface,accent,.12f));text(c,on>.5f?"Incoming calls quiet":"Do Not Annoy",103,141,14,ink);box(c,183,125,31,20,10,tint(muted,accent,on));circle(c,mix(193,204,on),135,7,onAccent);touch(c,198,135,t,.08f,.06f);

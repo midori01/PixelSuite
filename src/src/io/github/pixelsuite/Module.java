@@ -32,7 +32,6 @@ public class Module extends XposedModule {
         Safe.run(() -> MiscSystem.installSystem(cl));
         Safe.run(() -> OtaBlocker.installSystem(cl));
         Safe.run(() -> ShowFps.installSystem(cl));
-        Safe.run(() -> CallRecording.installSystem(cl));
     }
 
     @Override
@@ -83,26 +82,16 @@ public class Module extends XposedModule {
             Safe.run(() -> ScreenshotEditor.install(cl, param.getApplicationInfo()));
         } else if (StoreBlocker.PLAY.equals(pkg)) {
             Safe.run(() -> StoreBlocker.install(cl));
-        } else if (WatchEsim.PACKAGE.equals(pkg)) {
-            Safe.run(() -> WatchEsim.install(cl, param.getApplicationInfo()));
         } else if (DoNotAnnoy.PACKAGE.equals(pkg)) {
             Safe.run(() -> DoNotAnnoy.install(cl));
         } else if (DoNotAnnoy.PHONE.equals(pkg)) {
             Safe.run(() -> DoNotAnnoy.installDecline(cl));
-        } else if (ChromeCosmetic.PACKAGE.equals(pkg)) {
-            Safe.run(() -> ChromeCosmetic.install(cl));
-            Safe.run(() -> ChromeFeedAds.install(cl));
-            Safe.run(() -> KeyboardBarTweak.install(pkg));
-            Safe.run(() -> DevOptionsHide.install(pkg));
-        } else if (CallRecording.PACKAGE.equals(pkg)) {
-            Safe.run(() -> CallRecording.install(cl, param.getApplicationInfo()));
         } else if (DocumentsSort.GOOGLE.equals(pkg) || DocumentsSort.AOSP.equals(pkg)) {
             Safe.run(() -> DocumentsSort.install(cl));
         } else if (AliasProvider.GOOGLE.equals(pkg)) {
             Safe.run(() -> GoogleAliases.install());
             Safe.run(() -> SuperDarkApps.install(cl, pkg));
             if (SETTINGS.equals(pkg)) Safe.run(() -> SettingsSearchTone.install());
-            Safe.run(() -> GoogleFeedAds.install(cl));
         } else if (SuperDarkApps.GBOARD.equals(pkg) || SETTINGS.equals(pkg) || SuperDarkApps.SETTINGS_SEARCH.equals(pkg)
                 || "com.google.android.packageinstaller".equals(pkg) || "com.android.packageinstaller".equals(pkg)) {
             Safe.run(() -> SuperDarkApps.install(cl, pkg));

@@ -52,15 +52,8 @@
         android:allowBackup="false">
         <service android:name="io.github.pixelsuite.WatchCell$Job" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" />
         <receiver android:name="io.github.pixelsuite.WatchCell$Receiver" android:exported="true"><intent-filter><action android:name="android.bluetooth.device.action.ACL_CONNECTED" /></intent-filter></receiver>
-        <service android:name="io.github.pixelsuite.PatronRefreshJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" />
-        <activity android:name="io.github.pixelsuite.PatronCallbackActivity" android:exported="true" android:excludeFromRecents="true" android:theme="@style/Theme.PixelSuite">
-            <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="pixelsuite" android:host="unlock" /></intent-filter>
-        </activity>
-        <service android:name="io.github.pixelsuite.AdBlockJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" />
         <service android:name="io.github.pixelsuite.ReleaseUpdateJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         <provider android:name="io.github.pixelsuite.UpdateApkProvider" android:authorities="io.github.roviandev.pixelsuite.updates" android:exported="false" android:grantUriPermissions="true" />
-        <provider android:name="io.github.pixelsuite.CallRecordingProvider" android:authorities="io.github.roviandev.pixelsuite.callrecordings" android:exported="true" android:grantUriPermissions="false" />
-        <provider android:name="io.github.pixelsuite.CosmeticProvider" android:authorities="io.github.roviandev.pixelsuite.cosmetic" android:exported="true" android:grantUriPermissions="false" />
         <provider android:name="io.github.pixelsuite.AliasProvider"
             android:authorities="io.github.roviandev.pixelsuite.aliases"
             android:exported="true" android:grantUriPermissions="false" />
@@ -98,10 +91,6 @@
         <receiver android:name="io.github.pixelsuite.DoNotAnnoyReceiver" android:exported="true" android:permission="android.permission.MODIFY_PHONE_STATE">
             <intent-filter><action android:name="io.github.pixelsuite.action.DNA_DEFLECTED" /><action android:name="io.github.pixelsuite.action.DNA_STATE" /></intent-filter>
         </receiver>
-    <service android:name="io.github.pixelsuite.EsimRefreshJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" />
-<activity android:name="io.github.pixelsuite.EsimLinkActivity" android:exported="true" android:excludeFromRecents="true" android:theme="@style/Theme.PixelSuite">
-<intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="pixelsuite" android:host="esim" /></intent-filter>
-</activity>
         <provider android:name="io.github.pixelsuite.ScopeProvider" android:authorities="io.github.roviandev.pixelsuite.XposedService" android:exported="true" />
-</application>
+    </application>
 </manifest>

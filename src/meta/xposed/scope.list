@@ -9,7 +9,6 @@ com.google.android.apps.pixel.creativeassistant
 com.google.android.inputmethod.latin
 com.android.settings
 com.google.android.apps.photos
-com.google.android.dialer
 com.android.vending
 com.google.android.settings.intelligence
 com.google.android.packageinstaller
@@ -17,9 +16,7 @@ com.android.packageinstaller
 org.futo.inputmethod.latin
 org.futo.inputmethod.latin.playstore
 org.futo.inputmethod.latin.unstable
-com.google.android.apps.wear.companion
 com.android.intentresolver
-com.android.chrome
 com.android.imsstack
 com.android.phone
 com.google.android.apps.wallpaper

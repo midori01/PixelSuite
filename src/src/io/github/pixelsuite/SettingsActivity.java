@@ -84,12 +84,9 @@ public class SettingsActivity extends Activity {
     private boolean mSearchStatesLoading;
     private long mSearchStatesAt;
     private android.widget.ScrollView mPageScroll;
-    private TextView mAdProtectionStatus;
     private boolean mDnaPixelStack;
 
     private IconPackPage mIconPackPage;
-
-    private final Runnable mPatronChanged=new Runnable(){public void run(){if(!isFinishing()&&!isDestroyed()){updateAdProtectionStatus();load();if(mCallRecordingSettings!=null)mCallRecordingSettings.reload();if(mAppRoot!=null)PatronUi.apply(mAppRoot);}}};
 
     private final java.util.Set<String> mInitialReads=new java.util.HashSet<String>();
 
@@ -115,8 +112,6 @@ public class SettingsActivity extends Activity {
     private TextView mBanner;
 
     private View mMiscChooseApps;
-
-    private CallRecordingSettings mCallRecordingSettings;
 
     private StoreBlockerPage mStoreBlockerPage;
 
@@ -190,7 +185,6 @@ public class SettingsActivity extends Activity {
         page.setPadding(dp(16), dp(8), dp(16), dp(96));
 
         String pageId = getIntent().getStringExtra("page");
-        if("google_apps".equals(pageId))page.setPadding(dp(16),dp(8),dp(16),dp(16));
 
         if (pageId != null && !pageId.equals("home")) {
 
@@ -221,8 +215,6 @@ public class SettingsActivity extends Activity {
         title.setPadding(dp(8), dp(32), dp(8), dp(8));
 
         if(pageId==null||"home".equals(pageId))title.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        if(pageId==null||"home".equals(pageId))heading.addView(new PatronIdentity(this,mText));
 
         if(pageId==null||"home".equals(pageId)){
 
@@ -336,7 +328,7 @@ public class SettingsActivity extends Activity {
             public int background(){return mBg;}public int accent(){return mAccent;}public int onAccent(){return mOnAccent;}public int trackOff(){return switchTrackOff();}public int primary(){return mText;}public int secondary(){return mTextSecondary;}
             public boolean inline(AppSearchIndex.Entry e){return mSearchRootReady&&!searchComplex(e.key)&&!locked(e);}
             public boolean updating(){return mUpdating;}
-            public boolean locked(AppSearchIndex.Entry e){return !mSearchRootReady||(PatronAccess.protectedKey(e.key)&&!PatronAccess.allowed(SettingsActivity.this,e.key));}
+            public boolean locked(AppSearchIndex.Entry e){return !mSearchRootReady;}
             public boolean checked(String key){Boolean v=sSwitchValues.get(key);return v!=null?v:Feature.on(SettingsActivity.this,key);}
             public void toggle(AppSearchIndex.Entry e,boolean on,Switch sw){
                 sSwitchValues.put(e.key,on);Switch original=mSwitches.get(e.key);mUpdating=true;if(original!=null)original.setChecked(on);mUpdating=false;save(e.key,on,sw);
@@ -356,8 +348,6 @@ public class SettingsActivity extends Activity {
         for(String key:mSwitches.keySet())if(!sSwitchValues.containsKey(key))cached=false;
 
         if((!mSwitches.isEmpty()||!mChoiceLabels.isEmpty())&&!cached)mInitialReads.add("settings");
-
-        if(mCallRecordingSettings!=null&&!mCallRecordingSettings.cached()){mInitialReads.add("recording");mCallRecordingSettings.onInitialLoad(new Runnable(){public void run(){initialReadDone("recording");}});}
 
         if(mStoreBlockerPage!=null){mInitialReads.add("store");mStoreBlockerPage.onInitialLoad(new Runnable(){public void run(){initialReadDone("store");}});}
 
@@ -381,31 +371,15 @@ public class SettingsActivity extends Activity {
             mDnaObserver=new android.database.ContentObserver(mMain){@Override public void onChange(boolean self){if(!isFinishing()&&!isDestroyed())load();}};
             getContentResolver().registerContentObserver(android.provider.Settings.Secure.getUriFor(DoNotAnnoy.KEY),false,mDnaObserver);
         }
-        PatronAccess.watch(mPatronChanged);
 
         scroll.requestApplyInsets();
 
     }
 
-    private PatronMembershipRefresh mPatronMembershipRefresh;
     @Override
     protected void onResume() {
 
-        super.onResume();mPageResumed=true;mPageNavigation=false;animatePageIn();refreshAppSurfaces();startDeveloperGear();EsimPurchase.resume(this);
-        if(getIntent().hasExtra("esim_code")){final String code=getIntent().getStringExtra("esim_code");getIntent().removeExtra("esim_code");mMain.post(()->EsimPurchase.open(SettingsActivity.this,code));}
-
-        if(getIntent().getBooleanExtra("patron_thanks",false)){getIntent().removeExtra("patron_thanks");mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,2,null);}});}
-
-        else if(getIntent().hasExtra("patron_error")){final String error=getIntent().getStringExtra("patron_error");getIntent().removeExtra("patron_error");mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,0,error);}});}
-
-        else if(PatronAccess.claimPending(this))claimSignIn(0);
-
-        else if(PatronAccess.prefs(this).getBoolean("join_return",false)&&!PatronAccess.loggedIn(this)){PatronAccess.prefs(this).edit().putBoolean("join_return",false).apply();mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,1,null);}});}
-
-        if(mPatronMembershipRefresh==null)mPatronMembershipRefresh=new PatronMembershipRefresh(this);
-        boolean returnedFromJoin=PatronAccess.prefs(this).getBoolean("join_return",false);
-        if(returnedFromJoin)PatronAccess.prefs(this).edit().putBoolean("join_return",false).apply();
-        mPatronMembershipRefresh.resume(returnedFromJoin);
+        super.onResume();mPageResumed=true;mPageNavigation=false;animatePageIn();refreshAppSurfaces();startDeveloperGear();
 
         if(mPrivacyGate!=null){mPrivacyGate.resume();if(!mPrivacyGate.isOpen()){mPrivacyContent.setVisibility(View.INVISIBLE);authenticatePrivacy();return;}}
 
@@ -421,13 +395,7 @@ public class SettingsActivity extends Activity {
 
         if (mRestart != null) mRestart.refresh();
 
-        final boolean firstEntitlement=!PatronAccess.initialized();
-
-        if(firstEntitlement)mInitialReads.add("entitlement");
-
-        PatronAccess.resume(getApplicationContext(),firstEntitlement?new Runnable(){public void run(){mInitialReads.add("settings");mPatronChanged.run();initialReadDone("entitlement");}}:null);
-
-        load();if(mIconPackPage!=null)mIconPackPage.refresh();if(mCallRecordingSettings!=null)mCallRecordingSettings.reload();if(mStoreBlockerPage!=null)mStoreBlockerPage.resume();refreshBlockerSummary();
+        load();if(mIconPackPage!=null)mIconPackPage.refresh();if(mStoreBlockerPage!=null)mStoreBlockerPage.resume();refreshBlockerSummary();
 
         ReleaseUpdates.schedule(SettingsActivity.this); ReleaseUpdates.check(SettingsActivity.this,false,null);
 
@@ -441,7 +409,6 @@ public class SettingsActivity extends Activity {
 
     @Override protected void onPause(){
         mPageResumed=false;
-        if(mPatronMembershipRefresh!=null)mPatronMembershipRefresh.pause();
 
         stopDeveloperGear();
 
@@ -566,7 +533,7 @@ public class SettingsActivity extends Activity {
             if(allowed)WatchCell.schedule(this);
         }
     }
-    @Override protected void onDestroy(){GmsScope.onRemoved=null;if(mSearch!=null)mSearch.dispose();PatronAccess.unwatch(mPatronChanged);if(mIconPackPage!=null)mIconPackPage.dispose();if(mStoreBlockerPage!=null)mStoreBlockerPage.dispose();stopDeveloperGear();if(mPaletteObserver!=null)getContentResolver().unregisterContentObserver(mPaletteObserver);if(mDnaObserver!=null)getContentResolver().unregisterContentObserver(mDnaObserver);if(mPrivacyGate!=null){mPrivacyGate.stop();if(mPrivacyAuthSignal!=null)mPrivacyAuthSignal.cancel();}if(mRestart!=null)mRestart.dispose();for(AlertDialog dialog:new java.util.ArrayList<AlertDialog>(mSettingsDialogs))dialog.dismiss();for(FeaturePreview preview:mPreviews)preview.dispose();super.onDestroy();}
+    @Override protected void onDestroy(){GmsScope.onRemoved=null;if(mSearch!=null)mSearch.dispose();if(mIconPackPage!=null)mIconPackPage.dispose();if(mStoreBlockerPage!=null)mStoreBlockerPage.dispose();stopDeveloperGear();if(mPaletteObserver!=null)getContentResolver().unregisterContentObserver(mPaletteObserver);if(mDnaObserver!=null)getContentResolver().unregisterContentObserver(mDnaObserver);if(mPrivacyGate!=null){mPrivacyGate.stop();if(mPrivacyAuthSignal!=null)mPrivacyAuthSignal.cancel();}if(mRestart!=null)mRestart.dispose();for(AlertDialog dialog:new java.util.ArrayList<AlertDialog>(mSettingsDialogs))dialog.dismiss();for(FeaturePreview preview:mPreviews)preview.dispose();super.onDestroy();}
 
     private static boolean sPropChecked;
 
@@ -662,15 +629,6 @@ public class SettingsActivity extends Activity {
 
         if("ota_blocker".equals(id))return "OTA blocker";
 
-        if("google_apps".equals(id))return "Google apps";
-
-        if("google_dialer".equals(id))return "Google dialer";
-
-        if("chrome".equals(id))return "Chrome";if("google_news".equals(id))return "Google news";
-        if("google_app".equals(id))return "Google app";
-
-        if("pixel_watch".equals(id))return "Pixel watch";
-
         if("miscellaneous".equals(id))return "Miscellaneous";
 
         if("changelog".equals(id))return "Changelog";
@@ -706,15 +664,6 @@ public class SettingsActivity extends Activity {
 
         if("ota_blocker".equals(id))return "System update controls.";
 
-        if("google_apps".equals(id))return "Tools for your Google apps.";
-
-        if("google_dialer".equals(id))return "Call recording";
-
-        if("chrome".equals(id))return "Fewer ads and empty ad boxes.";if("google_news".equals(id))return "Cleaner news browsing.";
-        if("google_app".equals(id))return "Hide ads in Google feed";
-
-        if("pixel_watch".equals(id))return "eSIM setup with a QR code";
-
         if("miscellaneous".equals(id))return "Small fixes, simple controls.";
 
         if("changelog".equals(id))return "What's new";
@@ -724,18 +673,6 @@ public class SettingsActivity extends Activity {
     }
 
     private boolean mPageResumed,mPageNavigation,mPageClosing;
-    private boolean mClaiming;
-    private void claimSignIn(final int attempt){
-        if(mClaiming&&attempt==0)return;mClaiming=true;
-        PatronAccess.claim(this,new java.util.function.Consumer<String>(){public void accept(String error){
-            mClaiming=false;if(isFinishing()||isDestroyed())return;
-            if(error==null&&PatronAccess.unlocked())PatronPaper.open(SettingsActivity.this,2,null);
-            else PatronPaper.open(SettingsActivity.this,0,error==null?PatronAccess.membershipMessage(SettingsActivity.this):error);
-        }},new Runnable(){public void run(){
-            if(isFinishing()||isDestroyed()||!mPageResumed||!PatronAccess.claimPending(SettingsActivity.this)||attempt>=45){mClaiming=false;return;}
-            mMain.postDelayed(new Runnable(){public void run(){if(mPageResumed&&PatronAccess.claimPending(SettingsActivity.this))claimSignIn(attempt+1);else mClaiming=false;}},2000);
-        }});
-    }
     @Override public void startActivity(Intent intent,Bundle options){
         boolean page=intent.getComponent()!=null&&SettingsActivity.class.getName().equals(intent.getComponent().getClassName());
         mPageNavigation=page&&!"privacy".equals(intent.getStringExtra("page"));
@@ -918,86 +855,6 @@ public class SettingsActivity extends Activity {
             updateMiscPicker();explanation(page,"Takes effect at once. Reopen Settings to see the change.");
 
             extraPreview(page,"209_ota","System updates and factory reset");
-
-            return;
-
-        }
-
-        if("google_apps".equals(id)){
-
-            LinearLayout apps=group(page);
-
-            appNavigation(apps,"Google dialer","Call recording","com.google.android.dialer","ic_ps_call_recording","google_dialer");
-
-            appNavigation(apps,"Google app","Hide ads in Google feed",GoogleFeedAds.PACKAGE,"ic_ps_google_apps","google_app");
-
-            appNavigation(apps,"Chrome","Ad blocking and empty ad-box cleanup","com.android.chrome","ic_ps_chrome","chrome");
-            appNavigation(apps,"Google news","Ad blocking for news browsing","com.google.android.apps.magazines","ic_ps_news","google_news");
-            appNavigation(apps,"Pixel watch","eSIM setup with a QR code",WatchEsim.PACKAGE,"ic_ps_google_apps","pixel_watch");
-
-            finishGroup(apps);
-
-            AdBlockCard protection=new AdBlockCard(this,mText,mTextSecondary);LinearLayout.LayoutParams protectionLayout=new LinearLayout.LayoutParams(-1,-2);protectionLayout.topMargin=dp(8);protectionLayout.bottomMargin=0;page.addView(protection,protectionLayout);return;
-
-        }
-
-        if("chrome".equals(id)||"google_news".equals(id)){
-            boolean news="google_news".equals(id);
-            explanation(page,news?"Uses the system-wide ad blocker for news browsing. Articles opened in Chrome also get empty ad-box cleanup.":"Blocks ad domains and removes supported empty ad boxes while you browse. Uses the always-on ad blocker.");
-            mAdProtectionStatus=text("",15,mText,true);mAdProtectionStatus.setPadding(dp(18),dp(16),dp(18),dp(16));mAdProtectionStatus.setBackground(AppSurfaces.card(this,20));
-            LinearLayout.LayoutParams protectionStatus=new LinearLayout.LayoutParams(-1,-2);protectionStatus.bottomMargin=dp(12);page.addView(mAdProtectionStatus,protectionStatus);updateAdProtectionStatus();
-            mAdProtectionStatus.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(!PatronAccess.unlocked())PatronPaper.open(SettingsActivity.this,0,null);}});updateAdProtectionStatus();
-            extraPreview(page,news?"209_google_news":"209_chrome",news?"Cleaner news articles":"Browse without empty ad boxes");return;
-        }
-        if("pixel_watch".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,WatchEsim.KEY,"ic_ps_google_apps",mAccent,"eSIM setup with a QR code","Adds Scan QR code to Mobile network when your carrier isn't listed");
-
-            try{FrameLayout badge=(FrameLayout)((LinearLayout)controls.getChildAt(0)).getChildAt(0);((ImageView)badge.getChildAt(0)).setImageDrawable(AppBrandIcons.load(this,WatchEsim.PACKAGE,sectionInk("ic_ps_google_apps")));}catch(Exception missing){}
-
-            finishGroup(controls);extraPreview(page,"209_watch","Set up eSIM with a QR code");return;
-
-        }
-
-        if("google_app".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,GoogleFeedAds.KEY,"ic_ps_google_apps",mAccent,"Hide ads in Google feed","Removes sponsored cards from your feed, frame and space included");
-
-            try{LinearLayout toggle=(LinearLayout)controls.getChildAt(0);FrameLayout badge=(FrameLayout)toggle.getChildAt(0);((ImageView)badge.getChildAt(0)).setImageDrawable(googleIcon(sectionInk("ic_ps_google_apps")));}catch(Exception unavailable){}
-
-            finishGroup(controls);extraPreview(page,"209_feed","A feed without sponsored gaps");return;
-
-        }
-
-        if("google_dialer".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,CallRecording.KEY,"ic_ps_call_recording",mAccent,"Call recording","Record calls in the native Phone app, in any country, without the announcement.");
-
-            navigation(controls,"Recording mode","Automatic: every call is recorded","ic_ps_recording_mode",new Runnable(){public void run(){if(mCallRecordingSettings!=null)mCallRecordingSettings.chooseMode();}});
-
-            View modeRow=controls.getChildAt(controls.getChildCount()-1);
-
-            TextView modeSummary=(TextView)((LinearLayout)((LinearLayout)modeRow).getChildAt(1)).getChildAt(1);
-
-            navigation(controls,"Recordings folder",CallRecordingSettings.DEFAULT,"ic_ps_files_category",new Runnable(){public void run(){if(mCallRecordingSettings!=null)mCallRecordingSettings.choose();}});
-
-            View folderRow=controls.getChildAt(controls.getChildCount()-1);
-
-            TextView folderSummary=(TextView)((LinearLayout)((LinearLayout)folderRow).getChildAt(1)).getChildAt(1);
-
-            mCallRecordingSettings=new CallRecordingSettings(this,IO,folderRow,folderSummary,new CallRecordingSettings.Presenter(){public void show(AlertDialog dialog){showSettingsDialog(dialog);}});
-
-            mCallRecordingSettings.modeRow(modeRow,modeSummary);mCallRecordingSettings.enabled(Boolean.TRUE.equals(sSwitchValues.get(CallRecording.KEY)));finishGroup(controls);
-
-            explanation(page,"Call recording may be restricted by your country’s laws. Obtain any required consent before recording. You are responsible for lawful use. RovianDev is not responsible for illegal use.");
-
-            extraPreview(page,"209_recording","Record and save calls");
 
             return;
 
@@ -1199,14 +1056,6 @@ public class SettingsActivity extends Activity {
 
         finishGroup(categories);
 
-        categories=homeSection(page,"Google");
-
-        navigation(categories,"Google apps","Phone, Google, Chrome, News and watch","ic_ps_google_apps",new Runnable(){public void run(){openPage("google_apps");}});
-
-        googleNavigationIcon(categories);
-
-        finishGroup(categories);
-
         categories=homeSection(page,"Protection");
 
         navigation(categories,"Privacy & Security","Lock apps and folders","ic_ps_privacy",new Runnable(){public void run(){openPage("privacy");}});
@@ -1332,9 +1181,6 @@ public class SettingsActivity extends Activity {
 
     }
 
-    private void updateAdProtectionStatus(){
-        if(mAdProtectionStatus!=null){mAdProtectionStatus.setText(PatronAccess.unlocked()?L10n.t("Included with your Patreon unlock"):L10n.t("Unlock ad blocking with Patreon"));mAdProtectionStatus.setClickable(!PatronAccess.unlocked());mAdProtectionStatus.setFocusable(!PatronAccess.unlocked());}
-    }
     private void appendScopeFooter(LinearLayout page,String id){
         String note="do_not_annoy".equals(id)?FeatureScopes.doNotAnnoy(mDnaPixelStack):FeatureScopes.get(id);if(note==null)return;
         if(ScopePanel.installedEntries(this,ScopePanel.entries(id,pageTitle(id),note)).isEmpty())return;
@@ -1419,7 +1265,7 @@ public class SettingsActivity extends Activity {
                 }}).create());}});}});
     }
 
-    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==CallRecordingSettings.PICK_FOLDER&&mCallRecordingSettings!=null){mCallRecordingSettings.result(result,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText(L10n.t("Installation permission was not enabled. Tap Download and install when ready."));}catch(Exception unavailable){}}}
+    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText(L10n.t("Installation permission was not enabled. Tap Download and install when ready."));}catch(Exception unavailable){}}}
 
     private void buildUpdates(LinearLayout page){
 
@@ -1612,9 +1458,7 @@ public class SettingsActivity extends Activity {
 
         row.addView(labels,new LinearLayout.LayoutParams(0,-2,1));TextView arrow=text("\u203a",28,mTextSecondary,false);arrow.setPadding(dp(12),0,0,0);row.addView(arrow);
 
-        if("Google apps".equals(title)||"google_apps".equals(getIntent().getStringExtra("page")))PatronUi.navigationBadge(this,row,title);
-
-        row.setClickable(true);row.setFocusable(true);row.setContentDescription(L10n.t(title));row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(PatronAccess.protectedPage(getIntent().getStringExtra("page"))&&!PatronAccess.unlocked()){PatronPaper.open(SettingsActivity.this,0,null);return;}action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        row.setClickable(true);row.setFocusable(true);row.setContentDescription(L10n.t(title));row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
 
     }
 
@@ -1913,7 +1757,7 @@ public class SettingsActivity extends Activity {
 
                             Switch sw = mSwitches.get(keys[i]);
 
-                            if(sw!=null){if(PatronAccess.protectedKey(keys[i])&&!PatronAccess.allowed(SettingsActivity.this,keys[i]))values[i]=0;boolean checked=values[i]==1;sSwitchValues.put(keys[i],checked);if(sw.isChecked()!=checked)sw.setChecked(checked);sw.setVisibility(View.VISIBLE);sw.setEnabled(true);sw.jumpDrawablesToCurrentState();}
+                            if(sw!=null){boolean checked=values[i]==1;sSwitchValues.put(keys[i],checked);if(sw.isChecked()!=checked)sw.setChecked(checked);sw.setVisibility(View.VISIBLE);sw.setEnabled(true);sw.jumpDrawablesToCurrentState();}
 
                             updateChoiceLabel(keys[i],values[i]);
 
@@ -1921,7 +1765,7 @@ public class SettingsActivity extends Activity {
 
                         updateMiscPicker();
 
-                        mUpdating = false;if(mAppRoot!=null)PatronUi.apply(mAppRoot);initialReadDone("settings");
+                        mUpdating = false;initialReadDone("settings");
 
                     }
 
@@ -1936,8 +1780,6 @@ public class SettingsActivity extends Activity {
     private void save(final String key, final boolean on, final Switch sw) {
 
         if(mPrivacyGate!=null&&!mPrivacyGate.isOpen())return;
-
-        if(PatronUi.intercept(this,key)){mUpdating=true;sw.setChecked(false);mUpdating=false;return;}
 
         if("pixelsuite_dna_watch".equals(key)&&on&&android.os.Build.VERSION.SDK_INT>=31&&checkSelfPermission("android.permission.BLUETOOTH_CONNECT")!=android.content.pm.PackageManager.PERMISSION_GRANTED){
             mUpdating=true;sSwitchValues.put(key,false);sw.setChecked(false);mUpdating=false;
@@ -2005,10 +1847,6 @@ public class SettingsActivity extends Activity {
         if(RefreshRate90.KEY.equals(key))return put+" && am force-stop com.android.settings";
 
         if(ShareSheet.KEY.equals(key))return put+" && am force-stop "+ShareSheet.PACKAGE;
-
-        if(GoogleFeedAds.KEY.equals(key))return put+" && am force-stop "+GoogleFeedAds.PACKAGE;
-
-        if(WatchEsim.KEY.equals(key))return put+" && am force-stop "+WatchEsim.PACKAGE;
 
         if (Feature.FLASHLIGHT.equals(key) && on) {
 
@@ -2177,8 +2015,6 @@ public class SettingsActivity extends Activity {
 
             public void onClick(View v) {
 
-                if(PatronUi.intercept(SettingsActivity.this,key))return;
-
                 if (sw.isEnabled()) sw.toggle();
 
             }
@@ -2186,8 +2022,6 @@ public class SettingsActivity extends Activity {
         });
 
         row.setContentDescription(L10n.t(title));
-
-        PatronUi.decorate(this,row,key);
 
         group.addView(row, new LinearLayout.LayoutParams(
 
@@ -2268,8 +2102,6 @@ public class SettingsActivity extends Activity {
         if(ota!=null&&reset!=null){boolean enabled=ota.isEnabled()&&ota.isChecked();reset.setEnabled(enabled);View row=(View)reset.getParent();row.setAlpha(enabled?1f:.4f);}
 
         if(mStoreBlockerPage!=null){Switch unlock=mSwitches.get(StoreBlocker.UNLOCK_KEY);if(unlock!=null)mStoreBlockerPage.unlockChanged(unlock.isChecked());}
-
-        if(mCallRecordingSettings!=null){Switch recording=mSwitches.get(CallRecording.KEY);mCallRecordingSettings.enabled(recording!=null&&recording.isEnabled()&&recording.isChecked());}
 
         if(mMiscChooseApps==null)return;
 
@@ -2463,30 +2295,6 @@ public class SettingsActivity extends Activity {
 
     private int sectionInk(String icon){return SectionColors.ink(sectionFamily(icon));}
 
-    private Drawable googleIcon(int color) throws android.content.pm.PackageManager.NameNotFoundException {
-
-        return AppBrandIcons.load(this,GoogleFeedAds.PACKAGE,color);
-
-    }
-
-    private void googleNavigationIcon(LinearLayout group){
-
-        try{((ImageView)((LinearLayout)group.getChildAt(group.getChildCount()-1)).getChildAt(0)).setImageDrawable(googleIcon(sectionInk("ic_ps_google_apps")));}catch(Exception missing){}
-
-    }
-
-    private void appNavigation(LinearLayout group,String title,String summary,String pkg,String fallback,final String page){
-
-        navigation(group,title,summary,fallback,new Runnable(){public void run(){openPage(page);}});
-
-        try{ImageView icon=(ImageView)((LinearLayout)group.getChildAt(group.getChildCount()-1)).getChildAt(0);
-
-            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);icon.setImageDrawable(AppBrandIcons.load(this,pkg,sectionInk(fallback)));
-
-        }catch(Exception missing){}
-
-    }
-
     private final class OemSwitchTrack extends Drawable {
 
         private final Drawable original;
@@ -2548,7 +2356,7 @@ public class SettingsActivity extends Activity {
     }
 
     private boolean searchComplex(String key){
-        return key==null||key.isEmpty()||key.startsWith("pixelsuite_privacy")||key.equals(PrivacyLock.ENABLED_KEY)||key.equals(PrivacyLock.PROTECT_KEY)||key.equals(PrivacyLock.GRACE_KEY)||key.equals(DoNotAnnoy.KEY)||key.equals("pixelsuite_dna_watch")||key.equals(StoreBlocker.UNLOCK_KEY)||key.equals(OtaBlocker.KEY)||key.equals(OtaBlocker.RESET_KEY)||key.equals(MiscSystem.A11Y_KEY)||key.equals(WatchEsim.KEY);
+        return key==null||key.isEmpty()||key.startsWith("pixelsuite_privacy")||key.equals(PrivacyLock.ENABLED_KEY)||key.equals(PrivacyLock.PROTECT_KEY)||key.equals(PrivacyLock.GRACE_KEY)||key.equals(DoNotAnnoy.KEY)||key.equals("pixelsuite_dna_watch")||key.equals(StoreBlocker.UNLOCK_KEY)||key.equals(OtaBlocker.KEY)||key.equals(OtaBlocker.RESET_KEY)||key.equals(MiscSystem.A11Y_KEY);
     }
     private void loadSearchStates(){
         if(mSearchStatesLoading||(mSearchRootReady&&android.os.SystemClock.uptimeMillis()-mSearchStatesAt<2000))return;
@@ -2565,7 +2373,7 @@ public class SettingsActivity extends Activity {
                     else if(MiscOptions.defaultOff(keys[i]))values[i]="1".equals(raw)?1:0;
                 }selected.clear();stored.clear();}
             mMain.post(()->{mSearchStatesLoading=false;if(isFinishing()||isDestroyed())return;mSearchRootReady=values!=null;
-                if(values!=null)for(int i=0;i<keys.length;i++)sSwitchValues.put(keys[i],values[i]==1&&(!PatronAccess.protectedKey(keys[i])||PatronAccess.allowed(SettingsActivity.this,keys[i])));
+                if(values!=null)for(int i=0;i<keys.length;i++)sSwitchValues.put(keys[i],values[i]==1);
                 if(mSearch!=null)mSearch.palette();});
         }catch(Exception ignored){mMain.post(()->mSearchStatesLoading=false);}});
     }
@@ -2587,9 +2395,6 @@ public class SettingsActivity extends Activity {
     }
     private void revealSearchAnchor(){
         String anchor=getIntent().getStringExtra("search_anchor");if(anchor==null||mPageScroll==null)return;getIntent().removeExtra("search_anchor");
-        if(anchor.equals("@PatronAccount")){PatronAccount.open(this);return;}
-        if(anchor.equals("@PatronPaper")){PatronPaper.open(this,0,null);return;}
-        if(anchor.equals("@EsimPurchase")){EsimPurchase.open(this);return;}
         View found=findSearchAnchor(mPageScroll,anchor);if(found==null&&mSwitches.containsKey(anchor))found=(View)mSwitches.get(anchor).getParent();if(found==null)return;
         revealView(found);
     }
