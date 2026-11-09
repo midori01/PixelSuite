@@ -94,14 +94,9 @@ final class Xp {
         if (x == null || executable == null) return null;
         try {
             final Executable exec = executable;
-            final boolean gboardPlus = GboardMain.owns(cb);
             Hooker hooker = new Hooker() {
                 @Override
                 public Object intercept(Chain chain) throws Throwable {
-                    if (gboardPlus && GboardMain.off()) {
-                        List<Object> a0 = chain.getArgs();
-                        return chain.proceed(a0 == null ? new Object[0] : a0.toArray());
-                    }
                     Param p = new Param();
                     p.method = exec;
                     p.thisObject = chain.getThisObject();

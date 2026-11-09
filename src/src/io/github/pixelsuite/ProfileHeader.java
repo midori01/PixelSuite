@@ -22,7 +22,6 @@ final class ProfileHeader extends LinearLayout {
   PixelStack.attach(a,logo,mark,pixel,suite,ink,page,dark,black);
   LayoutParams lp=new LayoutParams(dp(30),dp(30));lp.leftMargin=lp.rightMargin=dp(7);title.addView(logo,lp);title.addView(suite);addView(title);
   TextView tagline=label(a,HomeLayout.TAGLINE,18,dark||black?0xffa8a8b0:0xff55555c,"sans-serif");lp=new LayoutParams(-2,-2);lp.topMargin=dp(8);addView(tagline,lp);
-  PatronIdentity identity=new PatronIdentity(a,secondary);identity.setTranslationY(-dp(3)); lp=new LayoutParams(-1,-2);lp.topMargin=dp(34);addView(identity,lp);
   LinearLayout buttons=new LinearLayout(a);buttons.setGravity(Gravity.CENTER);int[] order={0,2,1};for(int at=0;at<3;at++){final int index=order[at];LinearLayout column=new LinearLayout(a);column.setOrientation(VERTICAL);column.setGravity(Gravity.CENTER_HORIZONTAL);column.setClickable(true);column.setFocusable(true);column.setContentDescription(I18n.cs(index==1?"Buy me a coffee":CommunityLinks.NAMES[index]));column.setOnClickListener(v->CommunityLinks.open(a,index));
    FrameLayout circle=new FrameLayout(a);GradientDrawable mask=new GradientDrawable();mask.setShape(GradientDrawable.OVAL);mask.setColor(Color.WHITE);
    final AppFrost glass=AppFrost.pill(circle,new View(a),dp(24),page);circle.setBackground(new RippleDrawable(ColorStateList.valueOf(dark||black?0x33ffffff:0x22000000),glass,mask));

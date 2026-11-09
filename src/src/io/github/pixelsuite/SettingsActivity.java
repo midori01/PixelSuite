@@ -82,14 +82,12 @@ public class SettingsActivity extends Activity {
     private boolean mSearchStatesLoading;
     private long mSearchStatesAt;
     private android.widget.ScrollView mPageScroll;
-    private TextView mAdProtectionStatus;
     private boolean mDnaPixelStack;
 
     private IconPackPage mIconPackPage;
     private BackupRestorePage mBackupPage;
     private TextView mBackupSummary;
 
-    private final Runnable mPatronChanged=new Runnable(){public void run(){if(!isFinishing()&&!isDestroyed()){updateAdProtectionStatus();load();if(mCallRecordingSettings!=null)mCallRecordingSettings.reload();if(mAppRoot!=null)PatronUi.apply(mAppRoot);}}};
 
     private final java.util.Set<String> mInitialReads=new java.util.HashSet<String>();
 
@@ -119,7 +117,6 @@ public class SettingsActivity extends Activity {
 
     private View mMiscChooseApps;
 
-    private CallRecordingSettings mCallRecordingSettings;
 
     private StoreBlockerPage mStoreBlockerPage;
 
@@ -194,7 +191,6 @@ public class SettingsActivity extends Activity {
         page.setPadding(dp(16), dp(8), dp(16), dp(96));
 
         String pageId = getIntent().getStringExtra("page");
-        if("google_apps".equals(pageId))page.setPadding(dp(16),dp(8),dp(16),dp(16));
 
         if (pageId != null && !pageId.equals("home")) {
 
@@ -226,7 +222,6 @@ public class SettingsActivity extends Activity {
 
         if(pageId==null||"home".equals(pageId))title.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        if(pageId==null||"home".equals(pageId))heading.addView(new PatronIdentity(this,mText));
 
         if(pageId==null||"home".equals(pageId)){
 
@@ -251,22 +246,6 @@ public class SettingsActivity extends Activity {
 
             heading.addView(titleLine);
 
-        }else if(premiumPage(pageId)){
-            title.setIncludeFontPadding(false);
-            LinearLayout titleLine=new LinearLayout(this){
-                private final android.graphics.Rect inkBounds=new android.graphics.Rect();
-                @Override protected void onLayout(boolean changed,int l,int t,int r,int b){
-                    super.onLayout(changed,l,t,r,b);if(getChildCount()!=2)return;
-                    TextView label=(TextView)getChildAt(0);View logo=getChildAt(1);String value=label.getText().toString();
-                    label.getPaint().getTextBounds(value,0,value.length(),inkBounds);
-                    float center=label.getTop()+label.getBaseline()+(inkBounds.top+inkBounds.bottom)/2f;
-                    logo.setTranslationY(center-logo.getTop()-logo.getHeight()/2f);
-                }
-            };titleLine.setBaselineAligned(false);titleLine.setGravity(Gravity.CENTER_VERTICAL);
-            titleLine.addView(title,new LinearLayout.LayoutParams(-2,-2));
-            ImageView badge=new DollarBadgeView(this);badge.setTag("patron.header");badge.setContentDescription(I18n.cs("Patreon feature"));
-            LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(dp(30),dp(38));bp.leftMargin=dp(2);titleLine.addView(badge,bp);
-            heading.addView(titleLine,new LinearLayout.LayoutParams(-1,-2));
         }else heading.addView(title);
 
         TextView subtitle = text(pageSubtitle(pageId), 17, mTextSecondary, false);
@@ -303,7 +282,6 @@ public class SettingsActivity extends Activity {
         consolidateExplanations(page,pageId);
         combineFeaturePreviews(page);
         appendScopeFooter(page,pageId);
-        if(premiumPage(pageId))dropRowBadges(page);
 
         final ScrollView scroll = new SmoothScrollView(this);
 
@@ -365,7 +343,7 @@ public class SettingsActivity extends Activity {
             public int background(){return mBg;}public int accent(){return mAccent;}public int onAccent(){return mOnAccent;}public int trackOff(){return switchTrackOff();}public int primary(){return mText;}public int secondary(){return mTextSecondary;}
             public boolean inline(AppSearchIndex.Entry e){return mSearchRootReady&&!searchComplex(e.key)&&!locked(e);}
             public boolean updating(){return mUpdating;}
-            public boolean locked(AppSearchIndex.Entry e){return !mSearchRootReady||(PatronAccess.protectedKey(e.key)&&!PatronAccess.allowed(SettingsActivity.this,e.key));}
+            public boolean locked(AppSearchIndex.Entry e){return !mSearchRootReady;}
             public boolean checked(String key){Boolean v=sSwitchValues.get(key);return v!=null?v:Feature.on(SettingsActivity.this,key);}
             public void toggle(AppSearchIndex.Entry e,boolean on,Switch sw){
                 sSwitchValues.put(e.key,on);Switch original=mSwitches.get(e.key);mUpdating=true;if(original!=null)original.setChecked(on);mUpdating=false;save(e.key,on,sw);
@@ -385,8 +363,6 @@ public class SettingsActivity extends Activity {
         for(String key:mSwitches.keySet())if(!sSwitchValues.containsKey(key))cached=false;
 
         if((!mSwitches.isEmpty()||!mChoiceLabels.isEmpty())&&!cached)mInitialReads.add("settings");
-
-        if(mCallRecordingSettings!=null&&!mCallRecordingSettings.cached()){mInitialReads.add("recording");mCallRecordingSettings.onInitialLoad(new Runnable(){public void run(){initialReadDone("recording");}});}
 
         if(mStoreBlockedCount!=null)mInitialReads.add("blocker_summary");
 
@@ -408,31 +384,15 @@ public class SettingsActivity extends Activity {
             mDnaObserver=new android.database.ContentObserver(mMain){@Override public void onChange(boolean self){if(!isFinishing()&&!isDestroyed())load();}};
             getContentResolver().registerContentObserver(android.provider.Settings.Secure.getUriFor(DoNotAnnoy.KEY),false,mDnaObserver);
         }
-        PatronAccess.watch(mPatronChanged);
 
         scroll.requestApplyInsets();
 
     }
 
-    private PatronMembershipRefresh mPatronMembershipRefresh;
     @Override
     protected void onResume() {
 
-        super.onResume();mPageResumed=true;mPageNavigation=false;animatePageIn();refreshAppSurfaces();startDeveloperGear();EsimPurchase.resume(this);
-        if(getIntent().hasExtra("esim_code")){final String code=getIntent().getStringExtra("esim_code");getIntent().removeExtra("esim_code");mMain.post(()->EsimPurchase.open(SettingsActivity.this,code));}
-
-        if(getIntent().getBooleanExtra("patron_thanks",false)){getIntent().removeExtra("patron_thanks");mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,2,null);}});}
-
-        else if(getIntent().hasExtra("patron_error")){final String error=getIntent().getStringExtra("patron_error");getIntent().removeExtra("patron_error");mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,0,error);}});}
-
-        else if(PatronAccess.claimPending(this))claimSignIn(0);
-
-        else if(PatronAccess.prefs(this).getBoolean("join_return",false)&&!PatronAccess.loggedIn(this)){PatronAccess.prefs(this).edit().putBoolean("join_return",false).apply();mMain.post(new Runnable(){public void run(){PatronPaper.open(SettingsActivity.this,1,null);}});}
-
-        if(mPatronMembershipRefresh==null)mPatronMembershipRefresh=new PatronMembershipRefresh(this);
-        boolean returnedFromJoin=PatronAccess.prefs(this).getBoolean("join_return",false);
-        if(returnedFromJoin)PatronAccess.prefs(this).edit().putBoolean("join_return",false).apply();
-        mPatronMembershipRefresh.resume(returnedFromJoin);
+        super.onResume();mPageResumed=true;mPageNavigation=false;animatePageIn();refreshAppSurfaces();startDeveloperGear();
 
         if(mPrivacyGate!=null){mPrivacyGate.resume();if(!mPrivacyGate.isOpen()){mPrivacyContent.setVisibility(View.INVISIBLE);authenticatePrivacy();return;}}
 
@@ -448,13 +408,7 @@ public class SettingsActivity extends Activity {
 
         if (mRestart != null) mRestart.refresh();
 
-        final boolean firstEntitlement=!PatronAccess.initialized();
-
-        if(firstEntitlement)mInitialReads.add("entitlement");
-
-        PatronAccess.resume(getApplicationContext(),firstEntitlement?new Runnable(){public void run(){mInitialReads.add("settings");mPatronChanged.run();initialReadDone("entitlement");}}:null);
-
-        load();if(mIconPackPage!=null)mIconPackPage.refresh();if(mCallRecordingSettings!=null)mCallRecordingSettings.reload();if(mStoreBlockerPage!=null)mStoreBlockerPage.resume();if(mBackupPage!=null)mBackupPage.resume();if(mBackupSummary!=null)BackupRestorePage.summarize(this,STORE_IO,mBackupSummary);refreshBlockerSummary();
+        load();if(mIconPackPage!=null)mIconPackPage.refresh();if(mStoreBlockerPage!=null)mStoreBlockerPage.resume();if(mBackupPage!=null)mBackupPage.resume();if(mBackupSummary!=null)BackupRestorePage.summarize(this,STORE_IO,mBackupSummary);refreshBlockerSummary();
 
         ReleaseUpdates.schedule(SettingsActivity.this); ReleaseUpdates.check(SettingsActivity.this,false,null);
 
@@ -468,7 +422,6 @@ public class SettingsActivity extends Activity {
 
     @Override protected void onPause(){
         mPageResumed=false;
-        if(mPatronMembershipRefresh!=null)mPatronMembershipRefresh.pause();
 
         stopDeveloperGear();
 
@@ -593,7 +546,7 @@ public class SettingsActivity extends Activity {
             if(allowed)WatchCell.schedule(this);
         }
     }
-    @Override protected void onDestroy(){GmsScope.onRemoved=null;if(mSearch!=null)mSearch.dispose();PatronAccess.unwatch(mPatronChanged);if(mIconPackPage!=null)mIconPackPage.dispose();if(mStoreBlockerPage!=null)mStoreBlockerPage.dispose();stopDeveloperGear();if(mPaletteObserver!=null)getContentResolver().unregisterContentObserver(mPaletteObserver);if(mDnaObserver!=null)getContentResolver().unregisterContentObserver(mDnaObserver);if(mPrivacyGate!=null){mPrivacyGate.stop();if(mPrivacyAuthSignal!=null)mPrivacyAuthSignal.cancel();}if(mRestart!=null)mRestart.dispose();for(AlertDialog dialog:new java.util.ArrayList<AlertDialog>(mSettingsDialogs))dialog.dismiss();for(FeaturePreview preview:mPreviews)preview.dispose();super.onDestroy();}
+    @Override protected void onDestroy(){GmsScope.onRemoved=null;if(mSearch!=null)mSearch.dispose();if(mIconPackPage!=null)mIconPackPage.dispose();if(mStoreBlockerPage!=null)mStoreBlockerPage.dispose();stopDeveloperGear();if(mPaletteObserver!=null)getContentResolver().unregisterContentObserver(mPaletteObserver);if(mDnaObserver!=null)getContentResolver().unregisterContentObserver(mDnaObserver);if(mPrivacyGate!=null){mPrivacyGate.stop();if(mPrivacyAuthSignal!=null)mPrivacyAuthSignal.cancel();}if(mRestart!=null)mRestart.dispose();for(AlertDialog dialog:new java.util.ArrayList<AlertDialog>(mSettingsDialogs))dialog.dismiss();for(FeaturePreview preview:mPreviews)preview.dispose();super.onDestroy();}
 
     private static boolean sPropChecked;
 
@@ -670,15 +623,6 @@ public class SettingsActivity extends Activity {
 
     private FeaturePage feature(String id){for(FeaturePage f:PAGES)if(f.key.equals(id))return f;return null;}
 
-    private static boolean premiumPage(String id){
-        return "gboard".equals(id)||"gboard_autocorrect".equals(id)||"chrome".equals(id)||"extensions".equals(id)||"ad_blocker".equals(id)
-                ||"vpn".equals(id)||"dark_pages".equals(id)||"google_dialer".equals(id)||"google_app".equals(id);
-    }
-    private static void dropRowBadges(View v){
-        if(!(v instanceof ViewGroup))return;
-        ViewGroup g=(ViewGroup)v;
-        for(int i=g.getChildCount()-1;i>=0;i--){View c=g.getChildAt(i);if("patron.badge".equals(c.getTag()))g.removeViewAt(i);else dropRowBadges(c);}
-    }
     int pageColor(){return mBg;}
     private String pageTitle(String id){
 
@@ -706,19 +650,11 @@ public class SettingsActivity extends Activity {
 
         if("ota_blocker".equals(id))return "OTA blocker";
 
-        if("google_apps".equals(id))return "Google apps";
 
-        if("vpn".equals(id))return "VPN";
 
-        if("extensions".equals(id))return "Extensions";if("ad_blocker".equals(id))return "Ad Blocker";
-        if("dark_pages".equals(id))return "Dark pages";
 
-        if("google_dialer".equals(id))return "Google dialer+";
 
-        if("chrome".equals(id))return "Chrome+";if("google_news".equals(id))return "Google news";
-        if("google_app".equals(id))return "Google app";if("gboard".equals(id))return "Gboard+";if("gboard_autocorrect".equals(id))return "Auto-correction";
 
-        if("pixel_watch".equals(id))return "Pixel watch";
 
         if("miscellaneous".equals(id))return "Miscellaneous";
 
@@ -758,19 +694,11 @@ public class SettingsActivity extends Activity {
 
         if("ota_blocker".equals(id))return "System update controls.";
 
-        if("google_apps".equals(id))return "Tools for your Google apps.";
 
-        if("vpn".equals(id))return "Browse from another country.";
 
-        if("extensions".equals(id))return "Add-ons for Chrome+.";if("ad_blocker".equals(id))return "Filtering levels and website exceptions.";
-        if("dark_pages".equals(id))return "Dark websites in Chrome.";
 
-        if("google_dialer".equals(id))return "Call recording";
 
-        if("chrome".equals(id))return "Smoother hand-crafted animations, built-in extensions, bottom controls and a custom speed dial.";if("google_news".equals(id))return "Cleaner news browsing.";
-        if("google_app".equals(id))return "Hide ads in Google feed";if("gboard".equals(id))return "Toolbar, keys, resize, auto-correction, clipboard";if("gboard_autocorrect".equals(id))return "Choose the languages Gboard corrects.";
 
-        if("pixel_watch".equals(id))return "eSIM setup with a QR code";
 
         if("miscellaneous".equals(id))return "Small fixes, simple controls.";
 
@@ -781,18 +709,6 @@ public class SettingsActivity extends Activity {
     }
 
     private boolean mPageResumed,mPageNavigation,mPageClosing;
-    private boolean mClaiming;
-    private void claimSignIn(final int attempt){
-        if(mClaiming&&attempt==0)return;mClaiming=true;
-        PatronAccess.claim(this,new java.util.function.Consumer<String>(){public void accept(String error){
-            mClaiming=false;if(isFinishing()||isDestroyed())return;
-            if(error==null&&PatronAccess.unlocked())PatronPaper.open(SettingsActivity.this,2,null);
-            else PatronPaper.open(SettingsActivity.this,0,error==null?PatronAccess.membershipMessage(SettingsActivity.this):error);
-        }},new Runnable(){public void run(){
-            if(isFinishing()||isDestroyed()||!mPageResumed||!PatronAccess.claimPending(SettingsActivity.this)||attempt>=45){mClaiming=false;return;}
-            mMain.postDelayed(new Runnable(){public void run(){if(mPageResumed&&PatronAccess.claimPending(SettingsActivity.this))claimSignIn(attempt+1);else mClaiming=false;}},2000);
-        }});
-    }
     @Override public void startActivity(Intent intent,Bundle options){
         boolean page=intent.getComponent()!=null&&SettingsActivity.class.getName().equals(intent.getComponent().getClassName());
         mPageNavigation=page&&!"privacy".equals(intent.getStringExtra("page"));
@@ -1057,193 +973,6 @@ public class SettingsActivity extends Activity {
             explanation(page,"Tap an app to see its saved versions.");
             return;
         }
-        if("vpn".equals(id)){new VpnPage(this,page,mText,mTextSecondary,mAccent,mOnAccent,mCard,mDark);return;}
-        if("gboard_autocorrect".equals(id)){new GboardAutoCorrectPage(this,page,mText,mTextSecondary,mAccent,mOnAccent,switchTrackOff(),sectionColor("ic_ps_google_apps"),sectionInk("ic_ps_google_apps"),mDark);return;}
-
-        if("ad_blocker".equals(id)){
-            new AdBlockerPage(this,page,IO,mText,mTextSecondary,mAccent,mDark,new AdBlockerPage.Presenter(){public void show(AlertDialog dialog){showSettingsDialog(dialog);}});return;
-        }
-
-        if("extensions".equals(id)){
-            LinearLayout list=group(page);
-            final String vpnPage="vpn";
-            navigation(list,"Ad Blocker","Block ads, with filtering per site","ic_ps_cr_adblock",new Runnable(){public void run(){openPage("ad_blocker");}});
-            PatronUi.navigationBadge(this,(LinearLayout)list.getChildAt(list.getChildCount()-1),"Ad Blocker");
-            navigation(list,"VPN","Browse from another country, in Chrome or every app","ic_ps_vpn",new Runnable(){public void run(){openPage(vpnPage);}});
-            PatronUi.navigationBadge(this,(LinearLayout)list.getChildAt(list.getChildCount()-1),"VPN");
-            navigation(list,"Dark pages","Dark websites, always, with dark mode or on a schedule","ic_ps_cr_dark",new Runnable(){public void run(){openPage("dark_pages");}});
-            PatronUi.navigationBadge(this,(LinearLayout)list.getChildAt(list.getChildCount()-1),"Dark pages");
-            finishGroup(list);
-            explanation(page,"Tap Extensions on Chrome's new tab page to use them. Tap one for its settings, or hold it to pin it to the toolbar.");
-            explanation(page,"More to come.");
-            return;
-        }
-
-        if("dark_pages".equals(id)){
-            LinearLayout main=group(page);
-            row(main,DarkPages.KEY,"ic_ps_cr_dark",mAccent,"Dark pages","Dark websites in Chrome");
-            finishGroup(main);
-            LinearLayout look=group(page);
-            choice(look,DarkPages.KEY_STYLE,"Style",new String[]{"Dark","Super Dark"});
-            choice(look,DarkPages.KEY_WHEN,"Turns on",new String[]{"Always","With the phone's dark mode","On a schedule"});
-            finishGroup(look);
-            mDarkTimes=group(page);
-            navigation(mDarkTimes,"Starts",DarkPages.time(this,darkSetting(DarkPages.KEY_FROM,DarkPages.DEFAULT_FROM)),"ic_ps_cr_schedule",new Runnable(){public void run(){pickDarkTime(DarkPages.KEY_FROM,"Starts");}});
-            mDarkFrom=navigationSummary(mDarkTimes);
-            navigation(mDarkTimes,"Ends",DarkPages.time(this,darkSetting(DarkPages.KEY_TO,DarkPages.DEFAULT_TO)),"ic_ps_cr_schedule",new Runnable(){public void run(){pickDarkTime(DarkPages.KEY_TO,"Ends");}});
-            mDarkTo=navigationSummary(mDarkTimes);
-            finishGroup(mDarkTimes);
-            mDarkTimes.setVisibility(darkSetting(DarkPages.KEY_WHEN,DarkPages.ALWAYS)==DarkPages.SCHEDULE?View.VISIBLE:View.GONE);
-            explanation(page,"Websites open dark, with no white flash. Super Dark uses pure black.");
-            explanation(page,"In Chrome, open Extensions and tap Dark pages to turn it off for one website. Pictures and videos keep their colors.");
-            return;
-        }
-
-        if("google_apps".equals(id)){
-
-            LinearLayout apps=group(page);
-
-            appNavigation(apps,"Google dialer+","Call recording","com.google.android.dialer","ic_ps_call_recording","google_dialer");
-            appNavigation(apps,"Chrome+","Smoother hand-crafted animations, built-in extensions, bottom controls, custom speed dial","com.android.chrome","ic_ps_chrome","chrome");
-            appNavigation(apps,"Gboard+","Toolbar, keys, resize, auto-correction, clipboard",SuperDarkApps.GBOARD,"ic_ps_google_apps","gboard");
-            appNavigation(apps,"Google app","Hide ads in Google feed",GoogleFeedAds.PACKAGE,"ic_ps_google_apps","google_app");
-            appNavigation(apps,"Google news","Ad blocking for news browsing","com.google.android.apps.magazines","ic_ps_news","google_news");
-            appNavigation(apps,"Pixel watch","eSIM setup with a QR code",WatchEsim.PACKAGE,"ic_ps_google_apps","pixel_watch");
-
-            finishGroup(apps);
-
-            AdBlockCard protection=new AdBlockCard(this,mText,mTextSecondary,mAccent,mOnAccent,switchTrackOff());LinearLayout.LayoutParams protectionLayout=new LinearLayout.LayoutParams(-1,-2);protectionLayout.topMargin=dp(8);protectionLayout.bottomMargin=0;page.addView(protection,protectionLayout);return;
-
-        }
-
-        if("chrome".equals(id)){
-            LinearLayout controls=group(page);
-            row(controls,ChromeLayout.KEY,"ic_ps_cr_layout",mAccent,"Chrome+","Smoother hand-crafted animations, built-in extensions, bottom controls, custom speed dial");
-            navigation(controls,"Extensions","Ad Blocker, VPN, Dark pages and more to come","ic_ps_cr_extensions",new Runnable(){public void run(){openPage("extensions");}});
-            finishGroup(controls);
-            mAdProtectionStatus=text("",15,mText,true);mAdProtectionStatus.setPadding(dp(18),dp(16),dp(18),dp(16));mAdProtectionStatus.setBackground(AppSurfaces.card(this,20));
-            LinearLayout.LayoutParams protectionStatus=new LinearLayout.LayoutParams(-1,-2);protectionStatus.bottomMargin=dp(12);page.addView(mAdProtectionStatus,protectionStatus);updateAdProtectionStatus();
-            mAdProtectionStatus.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(!PatronAccess.unlocked())PatronPaper.open(SettingsActivity.this,0,null);}});updateAdProtectionStatus();
-            extraPreview(page,"chrome_plus_transform","From Chrome to Chrome+");
-            extraPreview(page,"209_chrome","Browse without empty ad boxes");
-            section(page,"How it works");
-            LinearLayout guide=group(page);guide.setPadding(dp(18),dp(10),dp(18),dp(18));guide.setBackground(AppSurfaces.card(this,20));
-            chromeGuidePart(guide,"Chrome+","Controls move to the bottom, with smooth tab animations. In the tab switcher, the orange + opens an incognito tab.");
-            chromeGuidePart(guide,"Ad blocker","Filter ads per site, from basic to complete. Complete also hides cookie banners and pop-ups. You can remove any element too.");
-            chromeGuidePart(guide,"Speed dial","Round icons for up to 19 websites and folders. Hold and drag to move one, or drop it on another to make a folder. Edit a website to give it your own picture.");
-            chromeGuidePart(guide,"Folders","Tap to open; hold to rename or remove. Hold a website inside to edit, move or remove it.");
-            chromeGuidePart(guide,"Extensions","Tap Extensions on the new tab page to use them. Hold one to pin it to the toolbar.");
-            return;
-        }
-        if("google_news".equals(id)){
-            boolean news="google_news".equals(id);
-            explanation(page,news?"Blocks ads while you read the news.":"Choose a filtering level per site from the ad blocker button in Chrome.");
-            mAdProtectionStatus=text("",15,mText,true);mAdProtectionStatus.setPadding(dp(18),dp(16),dp(18),dp(16));mAdProtectionStatus.setBackground(AppSurfaces.card(this,20));
-            LinearLayout.LayoutParams protectionStatus=new LinearLayout.LayoutParams(-1,-2);protectionStatus.bottomMargin=dp(12);page.addView(mAdProtectionStatus,protectionStatus);updateAdProtectionStatus();
-            mAdProtectionStatus.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(!PatronAccess.unlocked())PatronPaper.open(SettingsActivity.this,0,null);}});updateAdProtectionStatus();
-            extraPreview(page,news?"209_google_news":"209_chrome",news?"Cleaner news articles":"Browse without empty ad boxes");return;
-        }
-        if("pixel_watch".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,WatchEsim.KEY,"ic_ps_google_apps",mAccent,"eSIM setup with a QR code","Adds Scan QR code to Mobile network when your carrier isn't listed");
-
-            try{FrameLayout badge=(FrameLayout)((LinearLayout)controls.getChildAt(0)).getChildAt(0);((ImageView)badge.getChildAt(0)).setImageDrawable(AppBrandIcons.load(this,WatchEsim.PACKAGE,sectionInk("ic_ps_google_apps")));}catch(Exception missing){}
-
-            finishGroup(controls);extraPreview(page,"209_watch","Set up eSIM with a QR code");return;
-
-        }
-
-        if("gboard".equals(id)){
-            LinearLayout mainGroup=group(page);
-            row(mainGroup,GboardMain.KEY,"ic_ps_gb_power",mAccent,"Use Gboard+","All of Gboard+ at once. Your choices are kept while it's off");
-            finishGroup(mainGroup);
-            Lockable options=new Lockable(this);page.addView(options,new LinearLayout.LayoutParams(-1,-2));mGboardOptions=options;
-            LinearLayout look=group(options);
-            row(look,GboardFrost.KEY,"ic_ps_gb_frost",mAccent,"Frosted Gboard","See-through keyboard background, with rims");
-            finishGroup(look);
-            explanation(options,"In some apps, like Chrome, the keyboard's top corners look white. Those apps end their page where the keyboard starts, so there's nothing behind the corners to show.");
-            section(options,"Toolbar");
-            LinearLayout controls=group(options);
-            navigation(controls,"Edit toolbar shortcuts",gboardBarSummary(),"ic_ps_gb_toolbar",new Runnable(){public void run(){gboardBarEditor();}});
-            row(controls,GboardPlus.KEY_HIDE_CHIPS,"ic_ps_gb_chips",mAccent,"Hide suggestion chips","Keeps chips like Screenshot off the toolbar");
-            finishGroup(controls);
-            section(options,"Keys");
-            controls=group(options);
-            row(controls,GboardPlus.KEY_KEYS,"ic_ps_gb_keys",mAccent,"Rounded keys","Rounded keys and corners, with smooth key pop-ups");
-            row(controls,GboardPlus.KEY_DEL_LETTERS,"ic_ps_gb_backspace",mAccent,"Backspace swipe deletes letters","Swipe left from delete to remove letter by letter");
-            navigation(controls,"Resize",gboardGeoSummary(),"ic_ps_gb_resize",new Runnable(){public void run(){gboardResizer();}});
-            finishGroup(controls);
-            section(options,"Typing and clipboard");
-            controls=group(options);
-            navigation(controls,"Auto-correction",gboardAutoSummary(),"ic_ps_gb_autocorrect",new Runnable(){public void run(){if(!PatronAccess.unlocked()){PatronPaper.open(SettingsActivity.this,0,null);return;}openPage("gboard_autocorrect");}});
-            row(controls,GboardPlus.KEY_DICTATION,"ic_ps_gb_voice",mAccent,"Voice typing with checkmark","Speak, then tap the checkmark to add your words");
-            row(controls,GboardPlus.KEY_CLIP,"ic_ps_gb_clipboard",mAccent,"Clipboard in one column","One clip per row, exactly as you copied it");
-            finishGroup(controls);
-            section(page,"How it works");
-            LinearLayout guide=group(page);guide.setPadding(dp(18),dp(10),dp(18),dp(18));guide.setBackground(AppSurfaces.card(this,20));
-            chromeGuidePart(guide,"Use Gboard+","One switch for everything here. While it's off, Gboard works as it comes and your choices are kept.");
-            chromeGuidePart(guide,"Frosted Gboard","The keyboard's background turns to frosted glass: what's behind it shows through, blurred, with the rims. The keys stay as they are.");
-            chromeGuidePart(guide,"The toolbar","Up to 7 shortcuts, in the same order in every language.");
-            chromeGuidePart(guide,"Edit toolbar shortcuts","Hold a shortcut and drag it onto the toolbar, along it to reorder, or off to remove it. Tap one to see what it does. Hide the side buttons to give your shortcuts more room.");
-            chromeGuidePart(guide,"Text editing","Undo, Redo, Quick Select, Select all, Cut, Copy and Paste work in every app. Quick Select: tap for a word, tap again to clear, hold to select all.");
-            chromeGuidePart(guide,"Keys and backspace","Rounded keys with smooth pop-ups, in light, dark and Super Dark. Swipe left from delete to remove letter by letter.");
-            chromeGuidePart(guide,"Resize","Drag the handles to change the size, or the middle to move the keyboard. Reset goes back to Gboard's size.");
-            chromeGuidePart(guide,"Auto-correction","Turn auto-correction off for the languages you choose. Suggestions still show.");
-            chromeGuidePart(guide,"Voice typing","Off, the words appear as you speak. With Voice typing with checkmark on, speak, then tap the checkmark to add your words or X to cancel. It needs Rambler as the dictation type in Gboard's voice settings.");
-            chromeGuidePart(guide,"Clipboard history","Gboard keeps every clip until you delete it. Pinned clips have blue cards, and the X at the top deletes all but the pinned ones. Clipboard in one column shows one clip per row.");
-            TextView restart=text("Gboard restarts when you change any of these.",14,mTextSecondary,false);restart.setPadding(0,dp(14),0,0);guide.addView(restart,new LinearLayout.LayoutParams(-1,-2));
-            return;
-        }
-        if("google_app".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,GoogleFeedAds.KEY,"ic_ps_google_apps",mAccent,"Hide ads in Google feed","Removes sponsored cards from your feed, with no gaps left");
-
-            try{LinearLayout toggle=(LinearLayout)controls.getChildAt(0);FrameLayout badge=(FrameLayout)toggle.getChildAt(0);((ImageView)badge.getChildAt(0)).setImageDrawable(googleIcon(sectionInk("ic_ps_google_apps")));}catch(Exception unavailable){}
-
-            finishGroup(controls);extraPreview(page,"209_feed","A feed without sponsored gaps");return;
-
-        }
-
-        if("google_dialer".equals(id)){
-
-            LinearLayout controls=group(page);
-
-            row(controls,CallRecording.KEY,"ic_ps_call_recording",mAccent,"Call recording","Record calls in the Phone app, in any country, without the announcement");
-
-            navigation(controls,"Recording mode","Automatic: every call is recorded","ic_ps_recording_mode",new Runnable(){public void run(){if(mCallRecordingSettings!=null)mCallRecordingSettings.chooseMode();}});
-
-            View modeRow=controls.getChildAt(controls.getChildCount()-1);
-
-            TextView modeSummary=(TextView)((LinearLayout)((LinearLayout)modeRow).getChildAt(1)).getChildAt(1);
-
-            navigation(controls,"Recording quality","HD: clearer voice (default)","ic_ps_recording_mode",new Runnable(){public void run(){if(mCallRecordingSettings!=null)mCallRecordingSettings.chooseQuality();}});
-
-            View qualityRow=controls.getChildAt(controls.getChildCount()-1);
-
-            TextView qualitySummary=(TextView)((LinearLayout)((LinearLayout)qualityRow).getChildAt(1)).getChildAt(1);
-
-            navigation(controls,"Recordings folder",CallRecordingSettings.DEFAULT,"ic_ps_files_category",new Runnable(){public void run(){if(mCallRecordingSettings!=null)mCallRecordingSettings.choose();}});
-
-            View folderRow=controls.getChildAt(controls.getChildCount()-1);
-
-            TextView folderSummary=(TextView)((LinearLayout)((LinearLayout)folderRow).getChildAt(1)).getChildAt(1);
-
-            mCallRecordingSettings=new CallRecordingSettings(this,IO,folderRow,folderSummary,new CallRecordingSettings.Presenter(){public void show(AlertDialog dialog){showSettingsDialog(dialog);}});
-
-            mCallRecordingSettings.modeRow(modeRow,modeSummary);mCallRecordingSettings.qualityRow(qualityRow,qualitySummary);mCallRecordingSettings.enabled(Boolean.TRUE.equals(sSwitchValues.get(CallRecording.KEY)));finishGroup(controls);
-
-            explanation(page,"Call recording may be restricted by your country’s laws. Obtain any required consent before recording. You are responsible for lawful use. RovianDev is not responsible for illegal use.");
-
-            extraPreview(page,"209_recording","Record and save calls");
-
-            return;
-
-        }
-
         if("share_menu".equals(id)){
 
             LinearLayout controls=group(page);
@@ -1441,18 +1170,6 @@ public class SettingsActivity extends Activity {
 
         finishGroup(categories);
 
-        categories=homeSection(page,"Patreon");
-
-        navigation(categories,"Google apps","Phone, Chrome, Gboard, Google, News and watch","ic_ps_google_apps",new Runnable(){public void run(){openPage("google_apps");}});
-
-        googleNavigationIcon(categories);
-
-        navigation(categories,"VPN","Open-source servers worldwide","ic_ps_vpn",new Runnable(){public void run(){openPage("vpn");}});
-
-        PatronUi.navigationBadge(this,(LinearLayout)categories.getChildAt(categories.getChildCount()-1),"VPN");
-
-        finishGroup(categories);
-
         categories=homeSection(page,"Protection");
 
         navigation(categories,"Privacy & Security","Lock apps and folders","ic_ps_privacy",new Runnable(){public void run(){openPage("privacy");}});
@@ -1500,9 +1217,6 @@ public class SettingsActivity extends Activity {
 
     }
 
-    private void updateAdProtectionStatus(){
-        if(mAdProtectionStatus!=null){mAdProtectionStatus.setText(I18n.cs(PatronAccess.unlocked()?"Included with your Patreon unlock":"Unlock ad blocking with Patreon"));mAdProtectionStatus.setClickable(!PatronAccess.unlocked());mAdProtectionStatus.setFocusable(!PatronAccess.unlocked());}
-    }
     private void appendScopeFooter(LinearLayout page,String id){
         String note="do_not_annoy".equals(id)?FeatureScopes.doNotAnnoy(mDnaPixelStack):FeatureScopes.get(id);if(note==null)return;
         if(ScopePanel.installedEntries(this,ScopePanel.entries(id,pageTitle(id),note)).isEmpty())return;
@@ -1587,7 +1301,7 @@ public class SettingsActivity extends Activity {
                 }}).create());}});}});
     }
 
-    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==CallRecordingSettings.PICK_FOLDER&&mCallRecordingSettings!=null){mCallRecordingSettings.result(result,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText(I18n.cs("Installation permission was not enabled. Tap Download and install when ready."));}catch(Exception unavailable){}}}
+    @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if((request==Backup.SAVE||request==Backup.OPEN)&&result==RESULT_OK){backupResult(request,data);return;}if(request==202&&getIntent().getBooleanExtra("resume_update_install",false)){getIntent().removeExtra("resume_update_install");try{if((Boolean)getPackageManager().getClass().getMethod("canRequestPackageInstalls").invoke(getPackageManager()))beginUpdateInstall();else if(mUpdateStatus!=null)mUpdateStatus.setText(I18n.cs("Installation permission was not enabled. Tap Download and install when ready."));}catch(Exception unavailable){}}}
 
     private void buildUpdates(LinearLayout page){
 
@@ -1779,55 +1493,6 @@ public class SettingsActivity extends Activity {
 
     }
 
-    private java.util.List<String> gboardBarChoice(){
-        java.util.List<String> out=new java.util.ArrayList<String>();
-        try{String v=android.provider.Settings.Secure.getString(getContentResolver(),GboardPlus.KEY_BAR);if(v!=null&&v.indexOf(':')>0)for(String id:v.substring(v.indexOf(':')+1).split(","))if(!id.isEmpty()&&!out.contains(id))out.add(id);}catch(Throwable ignored){}
-        return out;
-    }
-    private String gboardBarLabel(String id){return GboardBarEditor.label(id);}
-    private String gboardBarSummary(){
-        java.util.List<String> c=gboardBarChoice();
-        StringBuilder x=new StringBuilder();
-        if(gboardSecure(GboardPlus.KEY_ROWS))x.append(gboardSecure(GboardPlus.KEY_ROWS_TOP)?" · Two rows, shortcuts on top":" · Two rows");
-        if(gboardSecure(GboardPlus.KEY_HIDE_MENU)&&gboardSecure(GboardPlus.KEY_HIDE_RIGHT))x.append(" · Side buttons hidden");
-        else if(gboardSecure(GboardPlus.KEY_HIDE_MENU))x.append(" · Menu button hidden");
-        else if(gboardSecure(GboardPlus.KEY_HIDE_RIGHT))x.append(" · Emoji/voice hidden");
-        if(c.isEmpty())return "Up to 7 shortcuts, their order, the side buttons and two rows"+x;
-        StringBuilder b=new StringBuilder();for(String id:c){if(b.length()>0)b.append(", ");b.append(gboardBarLabel(id));}return b.append(x).toString();
-    }
-    private boolean gboardSecure(String key){try{return android.provider.Settings.Secure.getInt(getContentResolver(),key,0)==1;}catch(Throwable t){return false;}}
-    private float[] gboardGeo(){
-        float[] g={1f,0.5f,1f,0f};
-        try{String v=android.provider.Settings.Secure.getString(getContentResolver(),GboardPlus.KEY_GEO);
-            if(v!=null&&!v.trim().isEmpty()){String[] f=v.split(",");for(int i=0;i<4&&i<f.length;i++)g[i]=Float.parseFloat(f[i].trim());}}catch(Throwable ignored){}
-        return g;
-    }
-    private String gboardAutoSummary(){return "Per language";}
-    private String gboardGeoSummary(){
-        float[] g=gboardGeo();
-        if(Math.abs(g[0]-1f)<0.005f&&Math.abs(g[2]-1f)<0.005f&&Math.round(g[3])==0)return "Move and resize the keyboard";
-        int up=Math.round(g[3]);return Math.round(g[0]*100)+"% wide · "+Math.round(g[2]*100)+"% tall · "+(up>=0?up+" dp up":(-up)+" dp down");
-    }
-    private void gboardResizer(){
-        if(!PatronAccess.unlocked()){PatronPaper.open(this,0,null);return;}
-        float[] g=gboardGeo();
-        final boolean[] saved={false};
-        GboardResizer.open(this,g[0],g[1],g[2],Math.round(g[3]),mDark,mBg,mCard,mText,mTextSecondary,mAccent,new GboardResizer.Saver(){public void save(float w,float cx,float h,int up){
-            final String cmd="settings put secure "+GboardPlus.KEY_GEO+" "+GboardResizer.value(w,cx,h,up)+" && settings put secure "+GboardPlus.KEY_FREE+" 0 && am force-stop "+SuperDarkApps.GBOARD;
-            IO.execute(new Runnable(){public void run(){final boolean ok=Root.run(cmd)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;if(ok)saved[0]=true;android.widget.Toast.makeText(SettingsActivity.this,I18n.cs(ok?"Saved. Gboard restarts with the new size":"Couldn't save (root)"),android.widget.Toast.LENGTH_SHORT).show();}});}});
-        }},new Runnable(){public void run(){if(saved[0]&&!isFinishing()&&!isDestroyed())recreate();}});
-    }
-    private void gboardBarEditor(){
-        if(!PatronAccess.unlocked()){PatronPaper.open(this,0,null);return;}
-        IO.execute(new Runnable(){public void run(){java.util.List<String> lines=Root.run("cat /data/data/"+SuperDarkApps.GBOARD+"/cache/pixelsuite_gboard_ids 2>/dev/null");final String list=lines==null?null:android.text.TextUtils.join("\n",lines);mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;GboardBarEditor.gboardList(list);gboardBarEditorOpen();}});}});
-    }
-    private void gboardBarEditorOpen(){
-        GboardBarEditor.open(this,gboardBarChoice(),gboardSecure(GboardPlus.KEY_HIDE_MENU),gboardSecure(GboardPlus.KEY_HIDE_RIGHT),gboardSecure(GboardPlus.KEY_ROWS),gboardSecure(GboardPlus.KEY_ROWS_TOP),mDark,mBg,mCard,mText,mTextSecondary,mAccent,new GboardBarEditor.Saver(){public void save(java.util.List<String> order,boolean hideMenu,boolean hideRight,boolean rows,boolean rowsTop){
-            StringBuilder v=new StringBuilder(String.valueOf(System.currentTimeMillis())).append(':');for(int i=0;i<order.size();i++){if(i>0)v.append(',');v.append(order.get(i));}
-            final String cmd="settings put secure "+GboardPlus.KEY_BAR+" "+v+" && settings put secure "+GboardPlus.KEY_HIDE_MENU+" "+(hideMenu?1:0)+" && settings put secure "+GboardPlus.KEY_HIDE_RIGHT+" "+(hideRight?1:0)+" && settings put secure "+GboardPlus.KEY_ROWS+" "+(rows?1:0)+" && settings put secure "+GboardPlus.KEY_ROWS_TOP+" "+(rowsTop?1:0)+" && am force-stop "+SuperDarkApps.GBOARD;
-            IO.execute(new Runnable(){public void run(){final boolean ok=Root.run(cmd)!=null;mMain.post(new Runnable(){public void run(){if(isFinishing()||isDestroyed())return;android.widget.Toast.makeText(SettingsActivity.this,I18n.cs(ok?"Saved. Gboard restarts with your toolbar":"Couldn't save (root)"),android.widget.Toast.LENGTH_SHORT).show();if(ok)recreate();}});}});
-        }});
-    }
     private void navigation(LinearLayout group,String title,String summary,String icon,final Runnable action){
 
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(dp(18),dp(18),dp(18),dp(18));row.setMinimumHeight(dp(80));
@@ -1844,9 +1509,8 @@ public class SettingsActivity extends Activity {
 
         row.addView(labels,new LinearLayout.LayoutParams(0,-2,1));TextView arrow=text("\u203a",28,mTextSecondary,false);arrow.setPadding(dp(12),0,0,0);row.addView(arrow);
 
-        if("Google apps".equals(title)||"google_apps".equals(getIntent().getStringExtra("page")))PatronUi.navigationBadge(this,row,title);
 
-        row.setClickable(true);row.setFocusable(true);row.setContentDescription(I18n.cs(title));row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){if(PatronAccess.protectedPage(getIntent().getStringExtra("page"))&&!PatronAccess.unlocked()){PatronPaper.open(SettingsActivity.this,0,null);return;}action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        row.setClickable(true);row.setFocusable(true);row.setContentDescription(I18n.cs(title));row.setTag("search.anchor:"+title);row.setOnClickListener(new View.OnClickListener(){public void onClick(View v){action.run();}});group.addView(row,new LinearLayout.LayoutParams(-1,-2));
 
     }
 
@@ -1859,13 +1523,12 @@ public class SettingsActivity extends Activity {
         if(LauncherFeatures.LABEL_LEVEL.equals(key)&&mLabelSlider!=null){mLabelSlider.setEnabled(true);mLabelSlider.setProgress(IconLabelScale.level(value));showLabelSize(value);}
 
         if(SurfaceStyle.KEY.equals(key)&&mStyleSlider!=null){mSavedStyle=Math.max(0,Math.min(2,value));mStyleLoaded=true;updateStyleControls();}
-        if(DarkPages.KEY_WHEN.equals(key)&&mDarkTimes!=null)mDarkTimes.setVisibility(value==DarkPages.SCHEDULE?View.VISIBLE:View.GONE);
 
         ImageView icon=mChoiceIcons.get(key);
 
         if(icon!=null){
 
-            String name=folderGridKey(key)?gridIcon(key):Feature.LOCK_SHORTCUTS.equals(key)?"ic_ps_lock_options":DarkPages.KEY_STYLE.equals(key)?"ic_ps_cr_dark":DarkPages.KEY_WHEN.equals(key)?"ic_ps_cr_schedule":value==1?"ic_ps_double_tap":"ic_ps_single_tap";
+            String name=folderGridKey(key)?gridIcon(key):Feature.LOCK_SHORTCUTS.equals(key)?"ic_ps_lock_options":value==1?"ic_ps_double_tap":"ic_ps_single_tap";
 
             Drawable d=drawable(name);if(d!=null){d=d.mutate();d.setTint(mAccent);icon.setImageDrawable(d);}
 
@@ -2032,44 +1695,13 @@ public class SettingsActivity extends Activity {
         mNavHome.setVisibility(View.VISIBLE);
     }
 
-    private LinearLayout mDarkTimes;private TextView mDarkFrom,mDarkTo;
-    private int darkSetting(String key,int fallback){try{return android.provider.Settings.Secure.getInt(getContentResolver(),key,fallback);}catch(Throwable t){return fallback;}}
-    private void updateDarkTimes(){
-        if(mDarkFrom!=null)mDarkFrom.setText(I18n.cs(DarkPages.time(this,darkSetting(DarkPages.KEY_FROM,DarkPages.DEFAULT_FROM))));
-        if(mDarkTo!=null)mDarkTo.setText(I18n.cs(DarkPages.time(this,darkSetting(DarkPages.KEY_TO,DarkPages.DEFAULT_TO))));
-    }
-    private void pickDarkTime(final String key,String title){
-        if(!PatronAccess.unlocked()){PatronPaper.open(this,0,null);return;}
-        final int current=darkSetting(key,DarkPages.KEY_FROM.equals(key)?DarkPages.DEFAULT_FROM:DarkPages.DEFAULT_TO);
-        final boolean h24=android.text.format.DateFormat.is24HourFormat(this);
-        LinearLayout wheels=new LinearLayout(this);wheels.setOrientation(LinearLayout.HORIZONTAL);wheels.setGravity(Gravity.CENTER);wheels.setPadding(dp(24),dp(8),dp(24),0);
-        final android.widget.NumberPicker hours=new android.widget.NumberPicker(this),minutes=new android.widget.NumberPicker(this),half=new android.widget.NumberPicker(this);
-        String[] mins=new String[60];for(int i=0;i<60;i++)mins[i]=String.format(java.util.Locale.ROOT,"%02d",i);
-        int h=current/60,m=current%60;
-        if(h24){String[] hs=new String[24];for(int i=0;i<24;i++)hs[i]=String.format(java.util.Locale.ROOT,"%02d",i);hours.setMinValue(0);hours.setMaxValue(23);hours.setDisplayedValues(hs);hours.setValue(h);}
-        else{hours.setMinValue(1);hours.setMaxValue(12);hours.setValue(h%12==0?12:h%12);}
-        minutes.setMinValue(0);minutes.setMaxValue(59);minutes.setDisplayedValues(mins);minutes.setValue(m);
-        java.text.DateFormatSymbols symbols=new java.text.DateFormatSymbols();half.setMinValue(0);half.setMaxValue(1);half.setDisplayedValues(symbols.getAmPmStrings());half.setValue(h<12?0:1);
-        for(android.widget.NumberPicker wheel:new android.widget.NumberPicker[]{hours,minutes,half}){wheel.setWrapSelectorWheel(wheel!=half);wheel.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);if(android.os.Build.VERSION.SDK_INT>=29)try{android.widget.NumberPicker.class.getMethod("setTextColor",int.class).invoke(wheel,mText);}catch(Throwable ignored){}}
-        LinearLayout.LayoutParams wheel=new LinearLayout.LayoutParams(-2,-2);wheel.leftMargin=dp(6);wheel.rightMargin=dp(6);
-        wheels.addView(hours,wheel);TextView colon=text(":",22,mText,true);wheels.addView(colon);wheels.addView(minutes,wheel);if(!h24)wheels.addView(half,wheel);
-        showSettingsDialog(new AlertDialog.Builder(this).setTitle(I18n.cs(title)).setView(wheels).setNegativeButton(I18n.cs("Cancel"),null).setPositiveButton(I18n.cs("Set"),new DialogInterface.OnClickListener(){public void onClick(DialogInterface dialog,int which){
-            int hour=h24?hours.getValue():(hours.getValue()%12)+(half.getValue()==1?12:0);
-            final int value=hour*60+minutes.getValue();mSaves++;
-            IO.execute(new Runnable(){public void run(){final boolean ok=Root.run("settings put secure "+key+" "+value)!=null;mMain.post(new Runnable(){public void run(){
-                if(isFinishing()||isDestroyed())return;
-                if(ok)updateDarkTimes();else{showRootBanner(true);AppToast.makeText(SettingsActivity.this,I18n.cs("Couldn't save: root access needed"),Toast.LENGTH_SHORT).show();}
-            }});}});
-        }}).create());
-    }
-
     private void choice(LinearLayout group,String key,String title,String[] items){choice(group,key,title,items,0);}
 
     private void choice(LinearLayout group,final String key,final String title,final String[] items,final int offset){
 
         LinearLayout row=new LinearLayout(this);row.setOrientation(0);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(dp(18),dp(22),dp(18),dp(22));row.setMinimumHeight(dp(96));
 
-        ImageView icon=new ImageView(this);Drawable d=drawable(folderGridKey(key)?gridIcon(key):Feature.LOCK_SHORTCUTS.equals(key)?"ic_ps_lock_options":DarkPages.KEY_STYLE.equals(key)?"ic_ps_cr_dark":DarkPages.KEY_WHEN.equals(key)?"ic_ps_cr_schedule":"ic_ps_single_tap");if(d!=null){d=d.mutate();d.setTint(mAccent);icon.setImageDrawable(d);}
+        ImageView icon=new ImageView(this);Drawable d=drawable(folderGridKey(key)?gridIcon(key):Feature.LOCK_SHORTCUTS.equals(key)?"ic_ps_lock_options":"ic_ps_single_tap");if(d!=null){d=d.mutate();d.setTint(mAccent);icon.setImageDrawable(d);}
 
         LinearLayout.LayoutParams iconParams=new LinearLayout.LayoutParams(dp(28),dp(28));iconParams.rightMargin=dp(18);row.addView(icon,iconParams);mChoiceIcons.put(key,icon);
 
@@ -2131,9 +1763,7 @@ public class SettingsActivity extends Activity {
 
                     try{values[i]=PrivacyLock.graceOn(android.provider.Settings.Secure.getString(getContentResolver(),PrivacyLock.GRACE_KEY))?1:0;}catch(Throwable ignored){}
 
-                }else if(GboardMain.KEY.equals(keys[i])){
 
-                    try{values[i]=GboardMain.on(getContentResolver())?1:0;}catch(Throwable ignored){}
 
                 }else if(MiscOptions.defaultOff(keys[i])){
 
@@ -2187,7 +1817,7 @@ public class SettingsActivity extends Activity {
 
                             Switch sw = mSwitches.get(keys[i]);
 
-                            if(sw!=null){if(PatronAccess.protectedKey(keys[i])&&!PatronAccess.allowed(SettingsActivity.this,keys[i]))values[i]=0;boolean checked=values[i]==1;sSwitchValues.put(keys[i],checked);if(sw.isChecked()!=checked)sw.setChecked(checked);sw.setVisibility(View.VISIBLE);sw.setEnabled(true);sw.jumpDrawablesToCurrentState();}
+                            if(sw!=null){boolean checked=values[i]==1;sSwitchValues.put(keys[i],checked);if(sw.isChecked()!=checked)sw.setChecked(checked);sw.setVisibility(View.VISIBLE);sw.setEnabled(true);sw.jumpDrawablesToCurrentState();}
 
                             updateChoiceLabel(keys[i],values[i]);
 
@@ -2195,7 +1825,7 @@ public class SettingsActivity extends Activity {
 
                         updateMiscPicker();
 
-                        mUpdating = false;if(mAppRoot!=null)PatronUi.apply(mAppRoot);initialReadDone("settings");
+                        mUpdating = false;initialReadDone("settings");
 
                     }
 
@@ -2211,7 +1841,6 @@ public class SettingsActivity extends Activity {
 
         if(mPrivacyGate!=null&&!mPrivacyGate.isOpen())return;
 
-        if(PatronUi.intercept(this,key)){mUpdating=true;sw.setChecked(false);mUpdating=false;return;}
 
         if("pixelsuite_dna_watch".equals(key)&&on&&android.os.Build.VERSION.SDK_INT>=31&&checkSelfPermission("android.permission.BLUETOOTH_CONNECT")!=android.content.pm.PackageManager.PERMISSION_GRANTED){
             mUpdating=true;sSwitchValues.put(key,false);sw.setChecked(false);mUpdating=false;
@@ -2280,10 +1909,7 @@ public class SettingsActivity extends Activity {
 
         if(ShareSheet.KEY.equals(key))return put+" && am force-stop "+ShareSheet.PACKAGE;
 
-        if(GoogleFeedAds.KEY.equals(key))return put+" && am force-stop "+GoogleFeedAds.PACKAGE;
-        if(GboardMain.KEY.equals(key)||GboardToolbar.KEY.equals(key)||GboardPlus.KEY_SHORTCUTS.equals(key)||GboardPlus.KEY_KEYS.equals(key)||GboardPlus.KEY_CLIP.equals(key)||GboardPlus.KEY_HIDE_CHIPS.equals(key)||GboardPlus.KEY_HIDE_MENU.equals(key)||GboardPlus.KEY_HIDE_RIGHT.equals(key)||GboardPlus.KEY_DICTATION.equals(key)||GboardPlus.KEY_ROWS.equals(key)||GboardPlus.KEY_ROWS_TOP.equals(key)||GboardPlus.KEY_FREE.equals(key)||GboardPlus.KEY_DEL_LETTERS.equals(key)||GboardPlus.KEY_AR_NO_AUTOCORRECT.equals(key)||GboardFrost.KEY.equals(key))return put+" && am force-stop "+SuperDarkApps.GBOARD;
 
-        if(WatchEsim.KEY.equals(key))return put+" && am force-stop "+WatchEsim.PACKAGE;
 
         if (Feature.FLASHLIGHT.equals(key) && on) {
 
@@ -2450,7 +2076,6 @@ public class SettingsActivity extends Activity {
 
             public void onClick(View v) {
 
-                if(PatronUi.intercept(SettingsActivity.this,key))return;
 
                 if (sw.isEnabled()) sw.toggle();
 
@@ -2460,7 +2085,6 @@ public class SettingsActivity extends Activity {
 
         row.setContentDescription(I18n.cs(title));
 
-        PatronUi.decorate(this,row,key);
 
         group.addView(row, new LinearLayout.LayoutParams(
 
@@ -2536,7 +2160,6 @@ public class SettingsActivity extends Activity {
 
     private void updateMiscPicker(){
         updateNavigationButtons();
-        updateGboardMain();
 
         Switch ota=mSwitches.get(OtaBlocker.KEY),reset=mSwitches.get(OtaBlocker.RESET_KEY);
 
@@ -2544,7 +2167,6 @@ public class SettingsActivity extends Activity {
 
         if(mStoreBlockerPage!=null){Switch unlock=mSwitches.get(StoreBlocker.UNLOCK_KEY);if(unlock!=null)mStoreBlockerPage.unlockChanged(unlock.isChecked());}
 
-        if(mCallRecordingSettings!=null){Switch recording=mSwitches.get(CallRecording.KEY);mCallRecordingSettings.enabled(recording!=null&&recording.isEnabled()&&recording.isChecked());}
 
         if(mMiscChooseApps==null)return;
 
@@ -2600,30 +2222,6 @@ public class SettingsActivity extends Activity {
 
         return group(page);
 
-    }
-
-    private Lockable mGboardOptions;
-
-    private void updateGboardMain(){
-        if(mGboardOptions==null)return;
-        Boolean on=sSwitchValues.get(GboardMain.KEY);
-        mGboardOptions.lock(on!=null&&!on);
-    }
-
-    private static final class Lockable extends LinearLayout {
-        private boolean locked;
-        Lockable(android.content.Context c){super(c);setOrientation(VERTICAL);}
-        void lock(boolean on){
-            if(locked==on)return;
-            locked=on;
-            animate().cancel();
-            if(isAttachedToWindow()&&isShown())animate().alpha(on?0.38f:1f).setDuration(200).setInterpolator(new android.view.animation.DecelerateInterpolator()).start();
-            else setAlpha(on?0.38f:1f);
-            setDescendantFocusability(on?FOCUS_BLOCK_DESCENDANTS:FOCUS_AFTER_DESCENDANTS);
-            setImportantForAccessibility(on?IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS:IMPORTANT_FOR_ACCESSIBILITY_AUTO);
-        }
-        @Override public boolean onInterceptTouchEvent(android.view.MotionEvent e){return locked||super.onInterceptTouchEvent(e);}
-        @Override public boolean onTouchEvent(android.view.MotionEvent e){return locked||super.onTouchEvent(e);}
     }
 
     private void section(LinearLayout page, String label) {
@@ -2762,30 +2360,6 @@ public class SettingsActivity extends Activity {
 
     private int sectionInk(String icon){return SectionColors.ink(sectionFamily(icon));}
 
-    private Drawable googleIcon(int color) throws android.content.pm.PackageManager.NameNotFoundException {
-
-        return AppBrandIcons.load(this,GoogleFeedAds.PACKAGE,color);
-
-    }
-
-    private void googleNavigationIcon(LinearLayout group){
-
-        try{((ImageView)((LinearLayout)group.getChildAt(group.getChildCount()-1)).getChildAt(0)).setImageDrawable(googleIcon(sectionInk("ic_ps_google_apps")));}catch(Exception missing){}
-
-    }
-
-    private void appNavigation(LinearLayout group,String title,String summary,String pkg,String fallback,final String page){
-
-        navigation(group,title,summary,fallback,new Runnable(){public void run(){openPage(page);}});
-
-        try{ImageView icon=(ImageView)((LinearLayout)group.getChildAt(group.getChildCount()-1)).getChildAt(0);
-
-            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);icon.setImageDrawable(AppBrandIcons.load(this,pkg,sectionInk(fallback)));
-
-        }catch(Exception missing){}
-
-    }
-
     private final class OemSwitchTrack extends Drawable {
 
         private final Drawable original;
@@ -2847,7 +2421,7 @@ public class SettingsActivity extends Activity {
     }
 
     private boolean searchComplex(String key){
-        return key==null||key.isEmpty()||key.startsWith("pixelsuite_privacy")||key.equals(PrivacyLock.ENABLED_KEY)||key.equals(PrivacyLock.PROTECT_KEY)||key.equals(PrivacyLock.GRACE_KEY)||key.equals(DoNotAnnoy.KEY)||key.equals("pixelsuite_dna_watch")||key.equals(StoreBlocker.UNLOCK_KEY)||key.equals(OtaBlocker.KEY)||key.equals(OtaBlocker.RESET_KEY)||key.equals(MiscSystem.A11Y_KEY)||key.equals(WatchEsim.KEY)
+        return key==null||key.isEmpty()||key.startsWith("pixelsuite_privacy")||key.equals(PrivacyLock.ENABLED_KEY)||key.equals(PrivacyLock.PROTECT_KEY)||key.equals(PrivacyLock.GRACE_KEY)||key.equals(DoNotAnnoy.KEY)||key.equals("pixelsuite_dna_watch")||key.equals(StoreBlocker.UNLOCK_KEY)||key.equals(OtaBlocker.KEY)||key.equals(OtaBlocker.RESET_KEY)||key.equals(MiscSystem.A11Y_KEY)
                 ||key.equals(Feature.FLASHLIGHT)||key.equals(Feature.VOLDOWN_CAMERA)||key.equals(VolumeCamera.KEY_ACTION)||key.equals(PowerHold.KEY)||key.equals(PowerHold.KEY_LOCKED);
     }
     private void loadSearchStates(){
@@ -2863,10 +2437,9 @@ public class SettingsActivity extends Activity {
                     if(PrivacyLock.ENABLED_KEY.equals(keys[i])||PrivacyLock.PROTECT_KEY.equals(keys[i]))values[i]=PrivacyLock.onValue(raw)?1:0;
                     else if(PrivacyLock.GRACE_KEY.equals(keys[i]))values[i]=PrivacyLock.graceOn(raw)?1:0;
                     else if(MiscOptions.defaultOff(keys[i]))values[i]="1".equals(raw)?1:0;
-                    else if(GboardMain.KEY.equals(keys[i]))try{values[i]=GboardMain.on(getContentResolver())?1:0;}catch(Throwable ignored){}
                 }selected.clear();stored.clear();}
             mMain.post(()->{mSearchStatesLoading=false;if(isFinishing()||isDestroyed())return;mSearchRootReady=values!=null;
-                if(values!=null)for(int i=0;i<keys.length;i++)sSwitchValues.put(keys[i],values[i]==1&&(!PatronAccess.protectedKey(keys[i])||PatronAccess.allowed(SettingsActivity.this,keys[i])));
+                if(values!=null)for(int i=0;i<keys.length;i++)sSwitchValues.put(keys[i],values[i]==1);
                 if(mSearch!=null)mSearch.palette();});
         }catch(Exception ignored){mMain.post(()->mSearchStatesLoading=false);}});
     }
@@ -2914,9 +2487,6 @@ public class SettingsActivity extends Activity {
     }
     private void revealSearchAnchor(){
         String anchor=getIntent().getStringExtra("search_anchor");if(anchor==null||mPageScroll==null)return;getIntent().removeExtra("search_anchor");
-        if(anchor.equals("@PatronAccount")){PatronAccount.open(this);return;}
-        if(anchor.equals("@PatronPaper")){PatronPaper.open(this,0,null);return;}
-        if(anchor.equals("@EsimPurchase")){EsimPurchase.open(this);return;}
         View found=findSearchAnchor(mPageScroll,anchor);if(found==null&&mSwitches.containsKey(anchor))found=(View)mSwitches.get(anchor).getParent();if(found==null)return;
         revealView(found);
     }

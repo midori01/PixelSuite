@@ -22,9 +22,8 @@ final class Feature {
     private Feature() {}
 
     static int defaultFor(String key) {
-        if(DarkPages.known(key))return DarkPages.defaultFor(key);
-        if(LauncherFeatures.HIDE_SEARCH.equals(key)||GboardMain.KEY.equals(key))return 0;
-        if(ChromeLayout.KEY.equals(key)||DOUBLE_TAP_SLEEP.equals(key)||TAP_CHECK.equals(key)||NavButtons.KEY.equals(key)||VOLDOWN_CAMERA.equals(key)||FLASHLIGHT.equals(key)||PrivacyLock.GRACE_KEY.equals(key)||AodPlus.KEY_CHARGING.equals(key)||AodPlus.KEY_AFTER.equals(key)||PinAuto.KEY.equals(key)||PowerHold.KEY_LOCKED_GEMINI.equals(key)||ClearAll.KEY_ONLY.equals(key)||MiscOptions.defaultOff(key))return 0;
+        if(LauncherFeatures.HIDE_SEARCH.equals(key))return 0;
+        if(DOUBLE_TAP_SLEEP.equals(key)||TAP_CHECK.equals(key)||NavButtons.KEY.equals(key)||VOLDOWN_CAMERA.equals(key)||FLASHLIGHT.equals(key)||PrivacyLock.GRACE_KEY.equals(key)||AodPlus.KEY_CHARGING.equals(key)||AodPlus.KEY_AFTER.equals(key)||PinAuto.KEY.equals(key)||PowerHold.KEY_LOCKED_GEMINI.equals(key)||ClearAll.KEY_ONLY.equals(key)||MiscOptions.defaultOff(key))return 0;
         if(LauncherFeatures.LABEL_LEVEL.equals(key))return 2;
         if(SurfaceStyle.KEY.equals(key))return SurfaceStyle.FROSTED;
         if(LauncherFeatures.GRID_SIZE.equals(key)||LauncherFeatures.DRAWER_GRID_SIZE.equals(key))return 3;

@@ -1,6 +1,7 @@
 package io.github.pixelsuite;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
@@ -12,6 +13,14 @@ import java.util.WeakHashMap;
 
 final class ChromeSuperDark {
     private ChromeSuperDark() {}
+    static final String PACKAGE = "com.android.chrome";
+    private static float clamp(float v) { return v < 0f ? 0f : v > 1f ? 1f : v; }
+    private static float lerp(float a, float b, float f) { return a + (b - a) * f; }
+    private static int mix(int a, int b, float f) {
+        f = clamp(f);
+        return Color.argb(Math.round(lerp(Color.alpha(a), Color.alpha(b), f)), Math.round(lerp(Color.red(a), Color.red(b), f)),
+                Math.round(lerp(Color.green(a), Color.green(b), f)), Math.round(lerp(Color.blue(a), Color.blue(b), f)));
+    }
     private static WeakReference<View> toolbar = new WeakReference<View>(null);
     private static volatile boolean incognito;
     private static volatile boolean urlFocused;
@@ -24,7 +33,7 @@ final class ChromeSuperDark {
         int rgb=c&0xffffff;
         if(rgb==0x121212||rgb==0x131314||rgb==0x282a2c||rgb==0x121213)return c&0xff000000;
         if(rgb==0x1e1f20||rgb==0x333537||rgb==0x1b1b1b||rgb==0x323436)return (c&0xff000000)|0x0a0a0a;
-        if(blending())for(int[] l:FOCUS){float t=along(rgb,l[0],l[1]);if(t>=0f)return (c&0xff000000)|ChromeTabTransition.mix(0xff000000|l[2],0xff000000|l[3],t)&0xffffff;}
+        if(blending())for(int[] l:FOCUS){float t=along(rgb,l[0],l[1]);if(t>=0f)return (c&0xff000000)|mix(0xff000000|l[2],0xff000000|l[3],t)&0xffffff;}
         return c;
     }
     private static final int[][] FOCUS={{0x131314,0x282a2c,0x000000,0x000000},{0x333537,0x1b1b1b,0x0a0a0a,0x0a0a0a}};
@@ -74,7 +83,7 @@ final class ChromeSuperDark {
     private static final int[][] HUB={{0x121213,0x000000,0x000000,0x000000},{0x323436,0x1a1a1a,0x0a0a0a,0x1a1a1a}};
     private static volatile long switchUntil;
     private static boolean switchingNow(){return android.os.SystemClock.uptimeMillis()<switchUntil&&SuperDark.inEffectNow();}
-    private static int hub(int c){int rgb=c&0xffffff;for(int[] l:HUB){float t=along(rgb,l[0],l[1]);if(t>=0f)return (c&0xff000000)|(ChromeTabTransition.mix(0xff000000|l[2],0xff000000|l[3],t)&0xffffff);}return c;}
+    private static int hub(int c){int rgb=c&0xffffff;for(int[] l:HUB){float t=along(rgb,l[0],l[1]);if(t>=0f)return (c&0xff000000)|(mix(0xff000000|l[2],0xff000000|l[3],t)&0xffffff);}return c;}
     private static int mapNow(int c){if(active())return mapped(c);if(leftover(c)&&SuperDark.inEffectNow())return mapped(c);return c;}
     private static int mapDrawn(Object d,int c){if(switchingNow()&&inHub(d)){int h=hub(c);if(h!=c)return h;}return mapNow(c);}
     private static final WeakHashMap<Object,Boolean> hubOf=new WeakHashMap<Object,Boolean>();

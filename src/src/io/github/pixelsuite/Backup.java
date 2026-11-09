@@ -26,8 +26,6 @@ final class Backup {
             "pixelsuite_dna_status", "pixelsuite_super_dark_blur_off", "pixelsuite_super_dark_turned_dark",
             "pixelsuite_token", "pixelsuite_device_id", "pixelsuite_last_alignment", "pixelsuite_align_pending", "pixelsuite_align_skipped"));
 
-    private static final Set<String> PATREON = new HashSet<String>(Arrays.asList(AdBlock.KEY, GoogleFeedAds.KEY, CallRecording.KEY));
-
     static boolean wanted(String key) {
         if (key == null || SKIP.contains(key)) return false;
         if (key.startsWith("pixelsuite_patron") || key.startsWith("pixelsuite_esim")) return false;
@@ -117,12 +115,10 @@ final class Backup {
             deleteAll(tmp);
             if (!tmp.mkdirs() && !tmp.isDirectory()) return false;
             StringBuilder cmd = new StringBuilder();
-            boolean patron = AdBlock.entitled(c);
             JSONObject secure = o.optJSONObject("secure");
             if (secure != null) for (Iterator<String> it = secure.keys(); it.hasNext(); ) {
                 String key = it.next();
                 if (!wanted(key) || !key.matches("[A-Za-z0-9_.]+")) continue;
-                if (!patron && PATREON.contains(key)) { cmd.append("settings put secure ").append(key).append(" 0;\n"); continue; }
                 cmd.append("settings put secure ").append(key).append(' ').append(quote(secure.optString(key))).append(";\n");
             }
             Map<String, StringBuilder> perPkg = new LinkedHashMap<String, StringBuilder>();
@@ -153,12 +149,7 @@ final class Backup {
                 cmd.append("fi\n");
             }
             cmd.append("true");
-            boolean ok = Root.run(cmd.toString()) != null;
-            if (!patron) {
-                try { AdBlock.stop(c); } catch (Throwable ignored) { }
-                try { PatronAccess.reconcile(c); } catch (Throwable ignored) { }
-            }
-            return ok;
+            return Root.run(cmd.toString()) != null;
         } catch (Throwable t) {
             return false;
         } finally {

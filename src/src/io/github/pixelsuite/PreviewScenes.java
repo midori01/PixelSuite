@@ -33,7 +33,6 @@ final class PreviewScenes {
     private float opacity=1;
     private boolean customCycle,compact;
     void compact(boolean value){compact=value;}
-    private static final String[] CALL_SECONDS={"00:01","00:02","00:03","00:04","00:05","00:06"};
     void nextCycle(){customCycle=!customCycle;}
     private static final int BLUE=0xff4285f4,RED=0xffea4335,YELLOW=0xfffbbc05,GREEN=0xff34a853;
     private static final int[] DOCK={5,1,4,12};
@@ -46,13 +45,11 @@ final class PreviewScenes {
     private static final String[] DARK_TILES={"Internet","Bluetooth","Flashlight","Do Not Disturb"};
     PreviewScenes(String key,int accent,int onAccent,int ink,int muted,int surface,boolean dark,PreviewIcons icons){this.key=key;this.accent=accent;this.onAccent=onAccent;this.ink=ink;this.muted=muted;this.surface=surface;this.dark=dark;this.icons=icons;this.privacyLockGlyph=new PrivacyBadges.Glyph(dark?0xffffffff:0xff1c1b1f,dark?0x8c000000:0xb3ffffff,1f);}
     long duration(){
-        if("chrome_plus_transform".equals(key))return 16000;
         if("clear_badge".equals(key))return 4800;
         if("drawer_folder_move".equals(key)||"drawer_move_bottom".equals(key))return 5200;
         if("209_share_combined".equals(key))return 15000;
         if("209_store".equals(key))return 9000;
-        if("209_recording".equals(key))return 7600;
-        if(key.startsWith("209_"))return ("209_feed".equals(key)||"209_watch".equals(key))?5000:6000;
+        if(key.startsWith("209_"))return 6000;
         if("recents_landscape".equals(key))return 6000;
         if("privacy_combined".equals(key))return 10000;
         if("privacy_lock".equals(key)||"privacy_folder".equals(key))return 4500;
@@ -327,140 +324,13 @@ final class PreviewScenes {
         if(transition>0){alpha(c,transition);privacyFolderScene(c,clamp((t-.54f)/.46f));c.restore();}
     }
 
-    boolean stillFinalFrame(){return "chrome_plus_transform".equals(key);}
-    private static final String[] CHROME_BOOKMARK_NAMES={"Mobile bookmarks","Bookmarks bar","Other bookmarks","Reading list","Speed Dial"};
-    private static float chromeEase(float a,float b,float seconds){float f=clamp((seconds-a)/(b-a));return 1-(1-f)*(1-f)*(1-f);}
-    private void chromeFinger(Canvas c,float x,float y,float show){
-        if(show<=0)return;float old=opacity;opacity*=show*.14f;circle(c,x,y,17,accent);opacity=old*show*.36f;circle(c,x,y,11,accent);opacity=old*show;circle(c,x,y,5,onAccent);outline(c,x-5,y-5,10,10,5,accent);opacity=old;
-    }
-    private static final String[] CHROME_SITES={"Google","Wikipedia","BBC","GitHub","Reddit","MDN"};
-    private static final String[] CHROME_LETTERS={"G","W","B","G","R","M"};
-    private void chromeSite(Canvas c,int index,float x,float y,float size,float round){
-        int i=Math.floorMod(index,CHROME_SITES.length);circle(c,x,y,size/2,tint(surface,accent,.16f));
-        text(c,CHROME_LETTERS[i],x,y+size*.24f,size*.58f,ink);
-    }
-    private void chromeFolderMark(Canvas c,float x,float y,float size){
-        circle(c,x,y,size/2,tint(surface,ink,.13f));for(int i=0;i<4;i++)chromeSite(c,i+1,x+(i%2==0?-1:1)*size*.16f,y+(i<2?-1:1)*size*.16f,size*.25f,1);
-    }
-    private void chromeGlyph(Canvas c,int kind,float x,float y,float size,int color){
-        float d=size/2;
-        if(kind==0){line(c,x+d*.65f,y-d,x-d*.35f,y,color);line(c,x-d*.35f,y,x+d*.65f,y+d,color);}
-        else if(kind==1){line(c,x-d*.65f,y-d,x+d*.35f,y,color);line(c,x+d*.35f,y,x-d*.65f,y+d,color);}
-        else if(kind==2){path.reset();path.moveTo(x-d,y);path.lineTo(x,y-d);path.lineTo(x+d,y);paint(color,true,1.8f);c.drawPath(path,p);outline(c,x-d*.65f,y-d*.1f,d*1.3f,d*1.05f,1,color);}
-        else if(kind==3){outline(c,x-d,y-d,size,size,3,color);text(c,"8",x,y+size*.25f,size*.7f,color);}
-        else if(kind==4){for(int i=-1;i<=1;i++)circle(c,x,y+i*4,1.4f,color);}
-        else if(kind==5){path.reset();for(int i=0;i<10;i++){double a=-Math.PI/2+i*Math.PI/5;float r=i%2==0?d:d*.45f;float xx=x+(float)Math.cos(a)*r,yy=y+(float)Math.sin(a)*r;if(i==0)path.moveTo(xx,yy);else path.lineTo(xx,yy);}path.close();paint(color,true,1.6f);c.drawPath(path,p);}
-        else if(kind==6){circle(c,x,y,d,color);circle(c,x,y-d*.22f,d*.3f,surface);paint(surface,true,2);c.drawArc(x-d*.6f,y,x+d*.6f,y+d*.8f,190,160,false,p);}
-        else{paint(color,true,1.8f);ChromeBarIcons.extensions(c,path,p,x,y,size*.58f);}
-    }
-    private void chromePlusTransform(Canvas c,float t){
-        float elapsed=t*16;
-        float sec=elapsed<=3.5f?elapsed:3.5f+(elapsed-3.5f)*.68f;
-        float plus=chromeEase(1.5f,2.8f,sec),drop=chromeEase(4.85f,5.25f,sec);
-        int base=dark&&Color.red(surface)<16?0xff000000:surface;
-        int raised=tint(base,ink,.07f),soft=tint(base,accent,.13f);
-        box(c,0,0,240,500,0,base);text(c,"10:08",30,23,11,ink);text(c,"5G",211,23,11,muted);
-        float ax=mix(36,12,plus),aw=mix(129,160,plus);
-        panel(c,ax,38,aw,34,17,raised);text(c,"Search",ax+aw/2,60,12,muted);
-        float old=opacity;opacity*=1-plus;chromeGlyph(c,2,18,55,12,ink);opacity=old;
-        float bar=chromeEase(1.75f,2.8f,sec);old=opacity;opacity*=bar;box(c,0,442+58*(1-bar),240,58,0,base);opacity=old;
-        for(int i=0;i<2;i++){
-            float f=chromeEase(1.55f+i*.1f,2.85f+i*.1f,sec);
-            float x=mix(187+i*29,168+i*48,f),y=mix(55,464,f);
-            chromeGlyph(c,i==1&&f>.98f?6:3+i,x,y,13,ink);
-        }
-        old=opacity;opacity*=bar;chromeGlyph(c,7,24,464,15,ink);chromeGlyph(c,5,72,464,15,ink);
-        circle(c,122,462,5.5f,ink);circle(c,122,462,3.8f,raised);line(c,126,467,130,471,ink);opacity=old;
-        old=opacity;opacity*=plus;paint(dark?0xfff28b82:0xffb3261e,false,0);ChromeBarIcons.shield(c,path,p,195,55,20);
-        line(c,191,55,199,55,dark?0xff601410:0xffffffff);chromeGlyph(c,4,222,55,13,ink);opacity=old;
-        text(c,"Google",120,126,30,ink);panel(c,16,147,208,35,18,raised);text(c,"Search the web",108,170,13,muted);
-        float hold=chromeEase(3.75f,4.05f,sec),drag=chromeEase(4.1f,4.8f,sec);
-        float targetX=42,targetY=230,sourceX=120,sourceY=230;
-        for(int i=0;i<6;i++){
-            float visibility=i<3?1:plus;if(visibility<=0)continue;
-            if(i==1&&sec>=3.75f)continue;
-            float slot=i>=2?mix(i,i-1,drop):i;
-            float fromX=42+(i%3)*78,fromY=230;
-            int low=(int)Math.floor(slot),high=Math.min(5,low+1);float frac=slot-low;
-            float x=mix(42+(low%3)*78,42+(high%3)*78,frac),y=mix(230+(low/3)*73,230+(high/3)*73,frac);
-            y=mix(fromY,y,plus);x=mix(fromX,x,plus);
-            old=opacity;opacity*=visibility;
-            if(i==0&&drop>0){float pop=1+.12f*(float)Math.sin(drop*Math.PI);chromeFolderMark(c,x,y,36*pop);text(c,"Sites",x,y+34,11,muted);}
-            else{chromeSite(c,i,x,y,mix(30,35,plus),1);text(c,CHROME_SITES[i],x,y+34,10,muted);}
-            opacity=old;
-        }
-        if(drop>0){old=opacity;opacity*=drop;circle(c,198,303,17.5f,raised);line(c,191,303,205,303,ink);line(c,198,296,198,310,ink);text(c,"Add new",198,337,10,muted);opacity=old;}
-        if(plus<1){old=opacity;opacity*=1-plus;panel(c,15,347,210,51,12,raised);text(c,"Discover",68,370,13,ink);line(c,29,384,205,384,muted);opacity=old;}
-        if(sec>=3.75f&&drop<1){
-            float x=mix(sourceX,targetX,drag),y=mix(sourceY,targetY,drag)-12*(float)Math.sin(drag*Math.PI);
-            float size=mix(33,37,hold)*(1-.55f*drop);old=opacity;opacity*=1-drop;
-            circle(c,x,y+3,size*.58f,soft);chromeSite(c,1,x,y,size,1);opacity=old;
-            if(drag>0){old=opacity;opacity*=drag*(1-drop);outline(c,targetX-22,targetY-22,44,44,22,accent);opacity=old;}
-            chromeFinger(c,x,y,hold*(1-drop));
-        }
-        float opened=chromeEase(6.12f,6.52f,sec)*(1-chromeEase(7.94f,8.22f,sec));
-        if(opened>0){
-            old=opacity;opacity*=opened*.38f;box(c,0,78,240,362,0,0xff000000);opacity=old;
-            float x=mix(targetX-18,15,opened),y=mix(targetY-18,174,opened),w=mix(36,210,opened),h=mix(36,217,opened),radius=mix(18,22,opened);
-            panel(c,x,y,w,h,radius,tint(base,ink,.09f));
-            float names=chromeEase(6.42f,6.68f,sec)*(1-chromeEase(7.83f,7.96f,sec));
-            old=opacity;opacity*=names;text(c,"My folder",120,203,17,ink);opacity=old;
-            float page=chromeEase(6.98f,7.22f,sec)-chromeEase(7.42f,7.65f,sec);
-            int save=c.save();path.reset();path.addRoundRect(22,215,218,361,12,12,Path.Direction.CW);c.clipPath(path);
-            for(int pageNo=0;pageNo<2;pageNo++)for(int i=0;i<6;i++){
-                float gx=52+(i%3)*68+(pageNo-page)*206,gy=244+(i/3)*65;
-                float px=targetX+(i%2==0?-6:6),py=targetY+(i<2?-6:6);
-                chromeSite(c,i+pageNo,mix(px,gx,opened),mix(py,gy,opened),mix(10,34,opened),1);
-                float labelOpacity=opacity;opacity*=names;text(c,CHROME_SITES[(i+pageNo)%6],gx,gy+27,10,muted);opacity=labelOpacity;
-            }
-            c.restoreToCount(save);
-            old=opacity;opacity*=names;circle(c,115,372,2.5f,page<.5f?accent:muted);circle(c,126,372,2.5f,page>=.5f?accent:muted);opacity=old;
-            if(sec>=6.98f&&sec<7.28f)chromeFinger(c,mix(190,55,chromeEase(6.98f,7.22f,sec)),342,1-chromeEase(7.22f,7.28f,sec));
-            if(sec>=7.42f&&sec<7.72f)chromeFinger(c,mix(55,190,chromeEase(7.42f,7.65f,sec)),342,1-chromeEase(7.65f,7.72f,sec));
-        }
-        chromeFinger(c,targetX,targetY,chromeEase(6.0f,6.10f,sec)*(1-chromeEase(6.15f,6.35f,sec)));
-        chromeFinger(c,216,415,chromeEase(7.80f,7.90f,sec)*(1-chromeEase(7.98f,8.20f,sec)));
-        float bookmarks=chromeEase(8.55f,8.9f,sec)*(1-chromeEase(10.32f,10.5f,sec));
-        if(bookmarks>0){
-            int save=c.save();c.translate(0,280*(1-bookmarks));old=opacity;opacity*=bookmarks;
-            box(c,0,78,240,362,0,base);text(c,"Bookmarks",120,111,22,ink);
-            float into=chromeEase(9.57f,9.85f,sec);
-            if(into<1){float a=opacity;opacity*=1-into;
-                for(int i=0;i<5;i++){float yy=148+i*51;if(i==4)panel(c,12,yy-23,216,43,13,soft);box(c,24,yy-10,20,16,3,i==4?accent:muted);box(c,24,yy-13,9,7,2,i==4?accent:muted);text(c,CHROME_BOOKMARK_NAMES[i],135,yy+3,13,ink);}opacity=a;
-            }
-            if(into>0){float a=opacity;opacity*=into;box(c,0,123,240,312,0,base);text(c,"Speed Dial",120,156,20,ink);panel(c,15,183,210,65,15,raised);chromeFolderMark(c,47,214,35);text(c,"My folder",140,219,15,ink);for(int i=0;i<2;i++){float yy=281+i*59;chromeSite(c,i+3,47,yy,32,1);text(c,i==0?"GitHub":"BBC",139,yy+5,15,ink);}opacity=a;}
-            opacity=old;c.restoreToCount(save);
-        }
-        chromeFinger(c,72,464,chromeEase(8.45f,8.53f,sec)*(1-chromeEase(8.63f,8.78f,sec)));
-        chromeFinger(c,132,352,chromeEase(9.4f,9.5f,sec)*(1-chromeEase(9.65f,9.8f,sec)));
-        if(sec>=10.0f&&sec<11.8f){
-            float websiteOpen=chromeEase(10.0f,10.22f,sec);old=opacity;opacity*=websiteOpen;
-            box(c,0,78,240,362,0,base);text(c,"A website",120,132,22,ink);panel(c,18,159,204,110,15,raised);
-            for(int i=0;i<4;i++)line(c,23,294+i*20,211-i%2*25,294+i*20,muted);
-            box(c,0,442,240,58,0,base);chromeGlyph(c,0,24,464,15,ink);chromeGlyph(c,1,72,464,15,ink);chromeGlyph(c,2,120,464,15,ink);chromeGlyph(c,3,168,464,13,ink);chromeGlyph(c,6,216,464,13,ink);opacity=old;
-        }
-        float tabs=chromeEase(10.58f,10.87f,sec)*(1-chromeEase(11.55f,11.82f,sec));
-        if(tabs>0){
-            old=opacity;opacity*=tabs;box(c,0,78,240,362,0,base);text(c,"Your tabs",120,111,20,ink);
-            for(int i=0;i<4;i++){
-                float xx=16+(i%2)*108,yy=130+(i/2)*149;
-                panel(c,xx,yy,100,136,14,raised);chromeSite(c,i+1,xx+17,yy+18,17,1);text(c,i==0?"New tab":i==1?"GitHub":i==2?"Wikipedia":"BBC",xx+61,yy+22,11,ink);
-                panel(c,xx+8,yy+36,84,89,9,tint(base,accent,.09f));line(c,xx+18,yy+54,xx+78,yy+54,muted);line(c,xx+18,yy+69,xx+66,yy+69,muted);
-                if(i==0)outline(c,xx,yy,100,136,14,accent);
-            }opacity=old;
-        }
-        chromeFinger(c,168,464,chromeEase(10.5f,10.57f,sec)*(1-chromeEase(10.72f,10.85f,sec)));
-        chromeFinger(c,63,196,chromeEase(11.42f,11.52f,sec)*(1-chromeEase(11.64f,11.8f,sec)));
-        String caption=sec<1.5f?"Chrome":sec<3.5f?"Controls within reach":sec<6?"Drag to make a folder":sec<8.5f?"Open. Swipe. Close.":sec<10.5f?"Speed Dial in bookmarks":sec<11.8f?"Every tab in view":"Chrome+";
-        text(c,caption,120,432,12,sec<1.5f?muted:accent);pill(c,1);
-    }
+    boolean stillFinalFrame(){return false;}
 
     private void scene(Canvas c,float t){
         if(PowerHold.KEY.equals(key)){holdScene(c,t);return;}
         if("aod_charging".equals(key)){aodCharging(c,t);return;}
         if("aod_after".equals(key)){aodAfter(c,t);return;}
         if("pin_auto".equals(key)){pinAuto(c,t);return;}
-        if("chrome_plus_transform".equals(key)){chromePlusTransform(c,t);return;}
         if("clear_badge".equals(key)){clearBadgeScene(c,t);return;}
         if("drawer_folder_move".equals(key)){drawerFolderScene(c,t,0);return;}
         if("drawer_move_bottom".equals(key)){drawerFolderScene(c,t,1);return;}
@@ -701,21 +571,6 @@ final class PreviewScenes {
         box(c,0,0,240,500,0,surface);
         if("209_share_combined".equals(key)){
             shareCombined(c,t);
-        }else if("209_recording".equals(key)){
-            float seconds=t*7.6f;boolean ended=seconds>=6f;int clock=Math.min(5,(int)seconds);
-            text(c,ended?"Call ended":"Phone",120,43,21,ink);circle(c,120,133,34,tint(surface,accent,.18f));text(c,"A",120,145,30,accent);text(c,"Alex",120,202,26,ink);text(c,CALL_SECONDS[clock],120,229,15,muted);
-            float recording=e(1f,1.18f,seconds)*(1-e(6f,6.16f,seconds));panel(c,53,267,134,49,24,tint(surface,accent,.18f));circle(c,78,291,8,seconds>=1f&&!ended?RED:muted);text(c,ended?"Recorded":seconds>=1f?"Recording":"Record",137,297,16,ink);touch(c,115,290,t,.115f,.025f);
-            for(int i=0;i<21;i++){float height=recording*(3+12*(float)Math.abs(Math.sin(i*.8+seconds*3)));line(c,39+i*8,350-height,39+i*8,350+height,accent);}
-            float saved=e(6.3f,6.8f,seconds);if(saved>0){alpha(c,saved);panel(c,14,387,212,71,18,tint(surface,accent,.14f));text(c,"Recording saved",120,413,16,ink);text(c,"Recordings / Calls",120,439,13,muted);c.restore();}
-            pill(c,1);
-        }else if("209_feed".equals(key)){
-            text(c,"Discover",120,43,23,ink);float remove=e(.3f,.56f,t);photo(c,14,76,212,104);text(c,"Today's stories",120,210,17,ink);
-            float h=130*(1-remove);if(h>1){alpha(c,1-remove);panel(c,14,238,212,h,14,tint(surface,accent,.13f));text(c,"Sponsored",120,273,16,muted);line(c,41,295,199,295,muted);line(c,41,314,167,314,muted);c.restore();}
-            float y=387-130*remove;photo(c,14,y,212,67);text(c,"More of your feed",120,y+94,15,ink);if(t>.7f){panel(c,40,445,160,30,15,tint(surface,accent,.13f));text(c,"No sponsored gaps",120,465,13,accent);}pill(c,1);
-        }else if("209_watch".equals(key)){
-            text(c,"Pixel watch",120,45,22,ink);text(c,"Mobile network",120,97,19,ink);float scan=e(.23f,.37f,t);
-            panel(c,15,127,210,58,18,tint(surface,accent,.13f));text(c,"Scan QR code",120,162,17,accent);touch(c,120,156,t,.14f,.1f);
-            if(scan>0){alpha(c,scan);outline(c,44,224,152,152,16,accent);for(int corner=0;corner<3;corner++){float x=corner==1?139:61,y=corner==2?319:241;outline(c,x,y,38,38,4,ink);box(c,x+10,y+10,18,18,2,ink);}for(int i=0;i<24;i++)if(i%3!=1)box(c,103+(i%6)*9,285+(i/6)*11,6,6,1,ink);float yy=232+132*e(.42f,.79f,t);line(c,51,yy,189,yy,accent);text(c,t>.86f?"Ready to activate":"Scan your carrier's code",120,418,15,t>.86f?accent:muted);c.restore();}pill(c,1);
         }else if("209_share".equals(key)){
             text(c,"Share",120,69,24,ink);photo(c,63,94,114,80);panel(c,0,203,240,297,24,tint(surface,ink,.045f));text(c,"Pinned apps",120,244,18,ink);
             float drag=e(.24f,.6f,t);for(int i=1;i<3;i++)app(c,SHARE209[i],mix(48+i*72,48+(i-1)*72,drag),300,36,true);
@@ -748,18 +603,6 @@ final class PreviewScenes {
             panel(c,14,dateY,212,51,14,tint(surface,ink,.05f));text(c,"Date & time",120,dateY+32,15,ink);
             panel(c,14,eraseY,212,51,14,tint(surface,ink,.05f));text(c,"Erase all data",120,eraseY+32,15,tint(ink,muted,reset));touch(c,120,eraseY+25,t,.58f,.07f);
             if(reset>0){float old=opacity;opacity*=reset;text(c,"Factory reset locked",120,440,14,accent);opacity=old;}pill(c,1);
-        }else if("209_chrome".equals(key)){
-            app(c,1,27,32,23,false);text(c,"Chrome",122,39,21,ink);panel(c,14,62,212,34,17,tint(surface,ink,.06f));text(c,"News article",120,84,13,muted);
-            text(c,"A clearer page",120,131,21,ink);photo(c,14,153,212,87);float cleared=e(.32f,.64f,t);
-            if(cleared<1){alpha(c,1-cleared);panel(c,16,254,208,96,14,tint(surface,accent,.11f));text(c,"Advertisement",120,284,14,muted);text(c,"Empty ad space",120,315,13,muted);c.restore();}
-            float body=371-96*cleared;for(int i=0;i<4;i++)line(c,19,body+i*17,220-i%2*29,body+i*17,muted);
-            if(t>.77f){float old=opacity;opacity*=e(.77f,.88f,t);panel(c,31,431,178,37,18,tint(surface,accent,.14f));text(c,"No empty ad boxes",120,455,14,accent);opacity=old;}pill(c,1);
-        }else if("209_google_news".equals(key)){
-            panel(c,17,19,24,27,4,tint(surface,accent,.2f));text(c,"N",29,38,17,accent);text(c,"Google News",132,39,20,ink);text(c,"For you",60,83,15,accent);text(c,"Headlines",179,83,15,muted);photo(c,14,102,212,103);text(c,"Today's top stories",120,233,18,ink);
-            for(int i=0;i<2;i++){float y=255+i*76;photo(c,15,y,64,61);line(c,91,y+13,223,y+13,muted);line(c,91,y+30,214,y+30,muted);line(c,91,y+47,185,y+47,muted);}touch(c,120,150,t,.09f,.07f);
-            float opened=e(.18f,.28f,t);if(opened>0){alpha(c,opened);box(c,0,0,240,500,0,surface);text(c,"‹",18,35,25,ink);text(c,"News article",112,34,16,ink);text(c,"Chrome",207,34,11,muted);line(c,13,57,227,57,tint(surface,muted,.2f));text(c,"Read the full story",120,104,20,ink);photo(c,14,125,212,87);
-                float cleared=e(.56f,.78f,t);if(cleared<1){float old=opacity;opacity*=1-cleared;panel(c,16,233,208,104,14,tint(surface,accent,.11f));text(c,"Advertisement",120,267,14,muted);text(c,"Scroll to continue",120,300,13,muted);opacity=old;}
-                float body=362-104*cleared;for(int i=0;i<4;i++)line(c,18,body+i*17,222-i%2*35,body+i*17,muted);if(t>.84f)text(c,"Cleaner articles in Chrome",120,449,13,accent);pill(c,1);c.restore();}
         }else if("209_do_not_annoy".equals(key)||"209_do_not_annoy_decline".equals(key)){
             text(c,"Do Not Annoy",120,64,22,ink);text(c,"5G",212,25,11,ink);text(c,"Connected",65,25,12,muted);
             float on=e(.14f,.25f,t);panel(c,14,102,212,66,18,tint(surface,accent,.12f));text(c,on>.5f?"Incoming calls quiet":"Do Not Annoy",103,141,14,ink);box(c,183,125,31,20,10,tint(muted,accent,on));circle(c,mix(193,204,on),135,7,onAccent);touch(c,198,135,t,.08f,.06f);

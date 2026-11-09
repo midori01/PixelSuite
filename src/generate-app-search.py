@@ -141,11 +141,6 @@ for m in re.finditer(r'new\s+(\w+)\(',body):
     texts=ui_strings(files[name])
     for page in pages_at(m.start()):
         if texts:add(page,titles[page], '\n'.join(dict.fromkeys(texts)))
-# Shared component strings are obtained from the actual invocation sites too.
-for name in ('PatronPaper','PatronAccount','EsimPurchase'):
-    if name not in files:continue
-    text=' '.join(ui_strings(files[name]))
-    add('pixel_watch' if name=='EsimPurchase' else 'google_apps',name.replace('PatronPaper','Read the quest').replace('PatronAccount','Patreon account').replace('EsimPurchase','Pixel watch eSIM purchase'),text,'ACTION',anchor='@'+name)
 # Helper methods used by a page contribute their UI strings to that page as well.
 for m in re.finditer(r'\b(buildUpdates|communityActions)\(page\)',body):
     name=m[1];definition=re.search(r'private void '+name+r'\([^)]*\)\s*\{',s)
@@ -158,18 +153,6 @@ for p in (root/'res/raw').glob('*changelog*'):
 # LSPosed setup stays on its settings pages; it is not a search result or a source of keywords.
 out=root/'res/raw/app_search.json';out.parent.mkdir(parents=True,exist_ok=True)
 for entry in entries:
-    if entry.get('anchor') == '@PatronAccount':
-        entry['keywords'] = (entry.get('keywords', '') + ' patreon sign in unlock').strip()
-    if entry.get('page') == 'chrome':
-        entry['keywords'] = (entry.get('keywords', '') + ' filtering level per site remove element chrome ad blocker button bottom bar opera navigation bar address bar chrome layout speed dial shortcuts new tab page extensions extension menu pin to toolbar animation transition smooth motion animated icons reorder drag move shortcut add shortcut folder folders speed dial folder group shortcuts rename folder speed dial bookmarks bookmark folder round icons circle icons no suggestions suggested sites most visited super dark chrome+ chrome plus vpn extension vpn for chrome country pin extension pinned extension dark pages dark websites').strip()
-    if entry.get('page') == 'ad_blocker':
-        entry['keywords'] = (entry.get('keywords', '') + ' Ad Blocker allowed websites whitelist filtering level default basic optimal complete per-site levels removed elements restore reset site settings').strip()
-    if entry.get('page') == 'dark_pages':
-        entry['keywords'] = (entry.get('keywords', '') + ' dark mode dark theme night mode dark websites dark web pages black pages super dark pure black schedule timer sunset night automatic chrome extension').strip()
-    if entry.get('page') == 'vpn':
-        entry['keywords'] = (entry.get('keywords', '') + ' vpn proxy change country location ip address united states usa united kingdom uk britain japan korea germany vpn gate open source open-source softether quick settings tile patreon chrome only vpn for chrome location gps geolocation google location time zone timezone travel').strip()
-    if entry.get('page') == 'google_dialer':
-        entry['keywords'] = (entry.get('keywords', '') + ' recording quality hd recording lossless wav call quality').strip()
     page=entry['page'];trail=[];visited=set()
     while page and page not in visited:
         visited.add(page);trail.insert(0,titles.get(page,page));page=parents.get(page,'')

@@ -198,10 +198,6 @@ final class PixelStackShare {
 
     static String player(Context c) {
         try {
-            if (PatronAccess.loggedIn(c)) {
-                String n = PatronAccess.prefs(c).getString("name", null);
-                if (n != null) { n = n.replace('\n', ' ').trim(); if (n.length() > 40) n = n.substring(0, 40).trim() + "…"; if (!n.isEmpty()) return n; }
-            }
             String typed = c.getSharedPreferences("pixelstack", Context.MODE_PRIVATE).getString("name", "");
             if (typed != null) { typed = noEmoji(typed).trim(); if (!typed.isEmpty()) return typed; }
         } catch (Throwable ignored) { }
@@ -228,7 +224,7 @@ final class PixelStackShare {
         return t == Character.OTHER_SYMBOL || t == Character.SURROGATE || t == Character.PRIVATE_USE;
     }
 
-    static boolean signedIn(Context c) { try { return PatronAccess.loggedIn(c); } catch (Throwable t) { return false; } }
+    static boolean signedIn(Context c) { return false; }
 
     static void openSection(Context c, Map<String, String> cfg) {
         String link = cfg.get("link");

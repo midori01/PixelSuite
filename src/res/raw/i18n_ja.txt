@@ -698,6 +698,7 @@ Adds Doodles and cropping tools to the screenshot editor.	スクリーンショ�
 Adds editable Doodles to the photo editor.	写真エディタに編集可能な 落書き を追加します。
 Adds the refresh-rate slider to Display & touch.	「ディスプレイとタップ」にリフレッシュ レートのスライダーを追加します。
 Allows secure-screen capture, hides accessibility and debugging status from apps, and provides the FPS counter.	保護された画面のキャプチャを許可し、ユーザー補助とデバッグの状態をアプリから隠し、FPS カウンターを表示します。
+Applies Super Dark to Chrome.	Chrome に スーパーダーク を適用します。
 Applies Super Dark to Gboard.	Gboard に スーパーダーク を適用します。
 Applies Super Dark to Settings search.	設定の検索に スーパーダーク を適用します。
 Applies Super Dark to Settings.	設定に スーパーダーク を適用します。
